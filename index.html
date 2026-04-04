@@ -3,19 +3,45 @@
 <head>
     <link rel="shortcut icon" href="icon.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <title>Watermark Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark Editor - Mobile Optimized</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <style>
         :root { --primary: #007AFF; --bg: #f2f2f7; --sidebar-bg: #ffffff; --border: #e5e5ea; }
-        body { font-family: -apple-system, "Pretendard", sans-serif; background: var(--bg); margin: 0; padding: 0; height: 100vh; overflow: hidden; }
-        .main-container { display: flex; width: 100%; height: 100vh; }
-        .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #d1d1d6; overflow: hidden; }
-        #canvas-container { max-width: 100%; max-height: 100%; display: none; box-shadow: 0 20px 80px rgba(0,0,0,0.3); }
-        canvas { display: block; max-width: 100%; max-height: 90vh; width: auto; height: auto; object-fit: contain; border-radius: 4px; }
-        .sidebar { width: 450px; background: var(--sidebar-bg); border-left: 1px solid #d1d1d6; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: "Pretendard Variable", Pretendard, -apple-system, sans-serif; 
+            background: var(--bg); margin: 0; padding: 0; height: 100vh; 
+        }
+
+        .main-container { display: flex; width: 100%; height: 100vh; flex-direction: row; }
+
+        /* 프리뷰 영역 */
+        .preview-area { 
+            flex: 1; display: flex; align-items: center; justify-content: center; 
+            padding: 20px; background: #d1d1d6; overflow: hidden; position: relative;
+        }
+        #canvas-container { max-width: 100%; max-height: 100%; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        canvas { display: block; max-width: 100%; max-height: 85vh; width: auto; height: auto; object-fit: contain; border-radius: 4px; }
+
+        /* 사이드바 설정 영역 */
+        .sidebar { 
+            width: 450px; background: var(--sidebar-bg); border-left: 1px solid #d1d1d6; 
+            padding: 30px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; 
+        }
         .form-wrapper { width: 100%; max-width: 380px; }
-        h3 { margin: 0 0 25px 0; font-size: 20px; color: #1c1c1e; text-align: center; }
-        .upload-area { border: 2px dashed #aeaeb2; padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; margin-bottom: 25px; display: block; font-size: 14px; font-weight: 600; color: #8e8e93; }
+        
+        h3 { margin: 0 0 20px 0; font-size: 20px; color: #1c1c1e; text-align: center; }
+        
+        .upload-area { 
+            border: 2px dashed #aeaeb2; padding: 20px; border-radius: 12px; cursor: pointer; 
+            text-align: center; margin-bottom: 20px; display: block; font-size: 14px; font-weight: 600; color: #8e8e93;
+            transition: background 0.2s;
+        }
+        .upload-area:active { background: #f2f2f7; }
         
         .setting-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .full-row { grid-column: span 2; }
@@ -23,26 +49,37 @@
         .input-box label { font-size: 10px; font-weight: 700; color: #a1a1a6; text-transform: uppercase; }
         
         input[type="text"], select { 
-            padding: 10px; border: 1px solid var(--border); border-radius: 8px; 
-            font-size: 13px; outline: none; background: #f5f5f7; width: 100%; box-sizing: border-box; 
+            padding: 12px; border: 1px solid var(--border); border-radius: 8px; 
+            font-size: 14px; outline: none; background: #f5f5f7; width: 100%;
         }
-        input:focus { border-color: #d1d1d6; }
-        input[readonly] { background: #e9e9eb; color: #8e8e93; cursor: not-allowed; border: 1px solid #d1d1d6; }
-        input[type="color"] { width: 100%; height: 40px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: none; padding: 0; }
+        input[readonly] { background: #e9e9eb; color: #8e8e93; }
+        input[type="color"] { width: 100%; height: 44px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; padding: 0; background: none; }
 
         .palette-container { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; }
-        .color-dot { flex: 1; min-width: 50px; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); box-sizing: border-box; transition: transform 0.1s ease; }
-        .color-dot.active { border: 1px solid var(--primary); box-shadow: 0 0 0 1.5px var(--primary); transform: scale(0.98); }
+        .color-dot { flex: 1; min-width: 45px; height: 40px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); }
+        .color-dot.active { border: 2px solid var(--primary); }
         
-        .btn-download { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; width: 100%; margin-top: 25px; }
+        .btn-download { 
+            background: var(--primary); color: white; border: none; padding: 16px; 
+            border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; margin-bottom: 40px;
+        }
         .btn-download:disabled { background: #d1d1d6; opacity: 0.6; }
+
+        /* 모바일 대응 미디어 쿼리 */
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; overflow-y: auto; height: auto; }
+            .preview-area { height: 60vh; padding: 10px; flex: none; }
+            .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; overflow-y: visible; }
+            canvas { max-height: 55vh; }
+            .setting-section { gap: 10px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="main-container">
         <div class="preview-area">
-            <div id="empty-msg" style="text-align: center; color: #8e8e93;"><p>사진을 업로드하여 스타일을 확인하세요.</p></div>
+            <div id="empty-msg" style="text-align: center; color: #8e8e93;"><p>📸 사진을 업로드하세요.</p></div>
             <div id="canvas-container"><canvas id="mainCanvas"></canvas></div>
         </div>
 
@@ -51,7 +88,7 @@
                 <h3>워터마크 설정</h3>
                 <label class="upload-area">
                     <input type="file" id="upload" accept="image/*" style="display:none">
-                    <div>이미지 업로드</div>
+                    <div>이미지 업로드 (터치)</div>
                 </label>
 
                 <div class="setting-section">
@@ -65,7 +102,7 @@
                     </div>
 
                     <div class="input-box full-row">
-                        <label>배경 색상 (Pastel)</label>
+                        <label>배경 색상</label>
                         <div class="palette-container" id="palette">
                             <div class="color-dot active" style="background: #ffffff;" data-color="#ffffff"></div>
                             <div class="color-dot" style="background: #000000;" data-color="#000000"></div>
@@ -153,7 +190,6 @@
                         
                         inputs.brandName.value = matchedBrand.name;
                         inputs.brandColor.value = matchedBrand.color;
-
                         const refinedModel = refineModelName(tags.Model || "");
                         inputs.modelName.value = refinedModel;
                         inputs.modelName.readOnly = refinedModel !== "";
@@ -211,37 +247,37 @@
 
             ctx.textBaseline = "middle";
 
+            // 폰트 설정 (Pretendard 사용)
             if (layoutType.value === 'default') {
                 ctx.textAlign = "left";
                 ctx.fillStyle = inputs.brandColor.value; 
-                ctx.font = `900 ${baseWidth * 0.026}px sans-serif`;
+                ctx.font = `900 ${baseWidth * 0.026}px "Pretendard"`;
                 ctx.fillText(inputs.brandName.value, sideMargin, centerY - (bottomSpace * 0.15));
                 ctx.fillStyle = mainTextColor; 
-                ctx.font = `bold ${baseWidth * 0.042}px sans-serif`;
+                ctx.font = `bold ${baseWidth * 0.042}px "Pretendard"`;
                 ctx.fillText(inputs.modelName.value || " ", sideMargin, centerY + (bottomSpace * 0.08));
 
                 ctx.textAlign = "right";
                 ctx.fillStyle = mainTextColor; 
-                ctx.font = `600 ${baseWidth * 0.021}px sans-serif`; 
+                ctx.font = `600 ${baseWidth * 0.021}px "Pretendard"`; 
                 ctx.fillText(spec, canvas.width - sideMargin, centerY - (bottomSpace * 0.13));
                 ctx.fillStyle = subTextColor; 
-                ctx.font = `500 ${baseWidth * 0.019}px sans-serif`; 
+                ctx.font = `500 ${baseWidth * 0.019}px "Pretendard"`; 
                 ctx.fillText(dateTime, canvas.width - sideMargin, centerY + (bottomSpace * 0.08));
 
             } else if (layoutType.value === 'modelFocus') {
                 ctx.textAlign = "center";
                 ctx.fillStyle = mainTextColor; 
-                ctx.font = `900 ${baseWidth * 0.05}px sans-serif`;
+                ctx.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
                 ctx.fillText(inputs.modelName.value || " ", canvas.width / 2, centerY - (bottomSpace * 0.05));
                 
                 const brandText = inputs.brandName.value;
                 const infoText = spec ? `  |  ${spec}` : "";
-                ctx.font = `bold ${baseWidth * 0.02}px sans-serif`;
+                ctx.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
                 const totalWidth = ctx.measureText(brandText + infoText).width;
                 let startX = (canvas.width - totalWidth) / 2;
 
                 ctx.textAlign = "left";
-                // 위치를 기존 0.15에서 0.22로 내려서 모델명과의 간격을 벌림
                 ctx.fillStyle = inputs.brandColor.value;
                 ctx.fillText(brandText, startX, centerY + (bottomSpace * 0.22));
                 ctx.fillStyle = subTextColor;
@@ -249,24 +285,21 @@
 
             } else if (layoutType.value === 'classicBar') {
                 const adjustedY = centerY + (bottomSpace * 0.05);
-                
                 ctx.textAlign = "left";
                 ctx.fillStyle = inputs.brandColor.value;
-                ctx.font = `900 ${baseWidth * 0.03}px sans-serif`;
+                ctx.font = `900 ${baseWidth * 0.03}px "Pretendard"`;
                 ctx.fillText(inputs.brandName.value, sideMargin, adjustedY);
-                
                 const bWidth = ctx.measureText(inputs.brandName.value).width;
                 ctx.fillStyle = mainTextColor;
-                ctx.font = `500 ${baseWidth * 0.03}px sans-serif`;
+                ctx.font = `500 ${baseWidth * 0.03}px "Pretendard"`;
                 ctx.fillText(" | " + inputs.modelName.value, sideMargin + bWidth, adjustedY);
 
                 ctx.textAlign = "right";
                 ctx.fillStyle = subTextColor;
-                ctx.font = `bold ${baseWidth * 0.022}px sans-serif`;
+                ctx.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
                 const fullInfo = [spec, inputs.date.value].filter(Boolean).join('  ·  ');
                 ctx.fillText(fullInfo, canvas.width - sideMargin, adjustedY);
             }
-
             downloadBtn.disabled = false;
         }
 
