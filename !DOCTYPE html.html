@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Watermark Editor - Info Focus</title>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+    <style>
+        :root { --primary: #007AFF; --bg: #f2f2f7; --sidebar-bg: #ffffff; --border: #e5e5ea; }
+        body { font-family: -apple-system, "Pretendard", sans-serif; background: var(--bg); margin: 0; padding: 0; height: 100vh; overflow: hidden; }
+        .main-container { display: flex; width: 100%; height: 100vh; }
+        .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #d1d1d6; overflow: hidden; }
+        #canvas-container { max-width: 100%; max-height: 100%; display: none; box-shadow: 0 20px 80px rgba(0,0,0,0.3); }
+        canvas { display: block; max-width: 100%; max-height: 90vh; width: auto; height: auto; object-fit: contain; border-radius: 4px; }
+        .sidebar { width: 450px; background: var(--sidebar-bg); border-left: 1px solid #d1d1d6; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .form-wrapper { width: 100%; max-width: 380px; }
+        h3 { margin: 0 0 25px 0; font-size: 20px; color: #1c1c1e; text-align: center; }
+        .upload-area { border: 2px dashed #aeaeb2; padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; margin-bottom: 25px; display: block; font-size: 14px; font-weight: 600; color: #8e8e93; }
+        .setting-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .full-row { grid-column: span 2; }
+        .input-box { display: flex; flex-direction: column; gap: 5px; }
+        .input-box label { font-size: 10px; font-weight: 700; color: #a1a1a6; text-transform: uppercase; }
+        input[type="text"] { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #f5f5f7; width: 100%; box-sizing: border-box; }
+        
+        /* [추가] 읽기 전용 입력창 스타일 */
+        input[readonly] { background: #e9e9eb; color: #8e8e93; cursor: not-allowed; border: 1px solid #d1d1d6; }
+        
+        input[type="color"] { width: 100%; height: 35px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; background: none; padding: 0; }
+        .btn-download { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 15px; width: 100%; margin-top: 25px; }
+        .btn-download:disabled { background: #d1d1d6; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="preview-area">
+            <div id="empty-msg" style="text-align: center; color: #8e8e93;"><p>📸 사진을 업로드하여 스타일을 확인하세요.</p></div>
+            <div id="canvas-container"><canvas id="mainCanvas"></canvas></div>
+        </div>
+
+        <div class="sidebar">
+            <div class="form-wrapper">
+                <h3>워터마크 설정</h3>
+                <label class="upload-area">
+                    <input type="file" id="upload" accept="image/*" style="display:none">
+                    <div>이미지 업로드</div>
+                </label>
+
+                <div class="setting-section">
+                    <div class="input-box"><label>브랜드</label><input type="text" id="brandName"></div>
+                    <div class="input-box"><label>브랜드 색상</label><input type="color" id="brandColor" value="#00126b"></div>
+                    
+                    <div class="input-box full-row"><label>디바이스 (수정 불가)</label><input type="text" id="modelName" readonly></div>
+                    
+                    <div class="input-box"><label>ISO</label><input type="text" id="iso"></div>
+                    <div class="input-box"><label>초점 거리</label><input type="text" id="focal"></div>
+                    <div class="input-box"><label>조리개값</label><input type="text" id="fNumber"></div>
+                    <div class="input-box"><label>셔터 스피드</label><input type="text" id="shutter"></div>
+                    <div class="input-box"><label>촬영 날짜</label><input type="text" id="date"></div>
+                    <div class="input-box"><label>촬영 시각</label><input type="text" id="time"></div>
+                    
+                    </div>
+                <button id="download" class="btn-download" disabled>이미지 저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const upload = document.getElementById('upload');
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const downloadBtn = document.getElementById('download');
+        
+        const brandConfigs = {
+            'APPLE': { name: 'Apple', color: '#8e8e93' },
+            'SAMSUNG': { name: 'SAMSUNG', color: '#00126b' },
+            'SONY': { name: 'SONY', color: '#000000' },
+            'CANON': { name: 'Canon', color: '#ff0000' },
+            'DEFAULT': { name: 'CAMERA', color: '#333333' }
+        };
+
+        // [변경] 필드 목록에서 Photo by 관련 ID 제거
+        const fields = ['brandName', 'brandColor', 'modelName', 'iso', 'focal', 'fNumber', 'shutter', 'date', 'time'];
+        const inputs = {};
+        fields.forEach(id => {
+            inputs[id] = document.getElementById(id);
+            inputs[id].addEventListener('input', () => { if(currentImg) draw(); });
+        });
+
+        let currentImg = null;
+
+        function refineModelName(model) {
+            if (!model) return "";
+            const modelMap = {
+                'SM-S928': 'S24 Ultra', 'SM-S926': 'S24+', 'SM-S921': 'S24',
+                'SM-X910': 'Tab S9 Ultra', 'SM-X810': 'Tab S9+', 'SM-X710': 'Tab S9'
+            };
+            for (let id in modelMap) {
+                if (model.toUpperCase().includes(id)) return modelMap[id];
+            }
+            return model.replace(/samsung /i, "").trim();
+        }
+
+        upload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImg = img;
+                    EXIF.getData(img, function() {
+                        const tags = EXIF.getAllTags(this);
+                        const rawMake = (tags.Make || "").toUpperCase();
+                        
+                        let matchedBrand = brandConfigs['DEFAULT'];
+                        for (let key in brandConfigs) {
+                            if (rawMake.includes(key)) {
+                                matchedBrand = brandConfigs[key];
+                                break;
+                            }
+                        }
+                        
+                        inputs.brandName.value = matchedBrand.name;
+                        inputs.brandColor.value = matchedBrand.color;
+                        inputs.modelName.value = refineModelName(tags.Model || "");
+                        inputs.iso.value = tags.ISOSpeedRatings || "";
+                        inputs.focal.value = tags.FocalLengthIn35mmFilm ? tags.FocalLengthIn35mmFilm + "mm" : (tags.FocalLength ? Math.round(tags.FocalLength) + "mm" : "");
+                        inputs.fNumber.value = tags.FNumber ? "F" + parseFloat(tags.FNumber).toFixed(1) : "";
+                        inputs.shutter.value = tags.ExposureTime ? (tags.ExposureTime < 1 ? `1/${Math.round(1/tags.ExposureTime)}` : tags.ExposureTime) : "";
+
+                        const rawDate = tags.DateTimeOriginal || tags.DateTime || "";
+                        if (rawDate) {
+                            const parts = rawDate.split(' ');
+                            inputs.date.value = parts[0].replace(/:/g, '/');
+                            inputs.time.value = parts[1].substring(0, 5);
+                        }
+                        
+                        document.getElementById('empty-msg').style.display = 'none';
+                        document.getElementById('canvas-container').style.display = 'block';
+                        draw();
+                    });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function draw() {
+            if(!currentImg) return;
+            const img = currentImg;
+            const baseWidth = img.width;
+            const imgPadding = baseWidth * 0.04; 
+            const bottomSpace = baseWidth * 0.22; 
+            canvas.width = baseWidth + (imgPadding * 2);
+            canvas.height = img.height + imgPadding + bottomSpace;
+            
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, imgPadding, imgPadding, baseWidth, img.height);
+            
+            const sideMargin = imgPadding * 1.5; 
+            
+            // [변경] 하단 문구가 없으므로 텍스트 뭉치를 여백 중앙(0.48 비율)에 고정
+            const centerY = (img.height + imgPadding) + (bottomSpace * 0.48);
+            
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+
+            ctx.fillStyle = inputs.brandColor.value; 
+            ctx.font = `900 ${baseWidth * 0.026}px sans-serif`;
+            ctx.fillText(inputs.brandName.value, sideMargin, centerY - (bottomSpace * 0.15));
+            
+            ctx.fillStyle = "black"; 
+            ctx.font = `bold ${baseWidth * 0.042}px sans-serif`;
+            ctx.fillText(inputs.modelName.value || " ", sideMargin, centerY + (bottomSpace * 0.08));
+
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#222"; 
+            ctx.font = `600 ${baseWidth * 0.021}px sans-serif`; 
+            const spec = [inputs.iso.value ? `ISO ${inputs.iso.value}` : '', inputs.focal.value, inputs.fNumber.value, inputs.shutter.value].filter(Boolean).join('  ');
+            ctx.fillText(spec, canvas.width - sideMargin, centerY - (bottomSpace * 0.13));
+            
+            ctx.fillStyle = "#666"; 
+            ctx.font = `500 ${baseWidth * 0.019}px sans-serif`; 
+            const dateTime = [inputs.date.value, inputs.time.value].filter(Boolean).join('   ');
+            ctx.fillText(dateTime, canvas.width - sideMargin, centerY + (bottomSpace * 0.08));
+
+            downloadBtn.disabled = false;
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `Result_${inputs.modelName.value || 'photo'}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.98); 
+            link.click();
+        });
+    </script>
+</body>
+</html>
