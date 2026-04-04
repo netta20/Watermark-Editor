@@ -42,7 +42,7 @@
 
     <div class="main-container">
         <div class="preview-area">
-            <div id="empty-msg" style="text-align: center; color: #8e8e93;"><p>사진을 업로드하여 스타일을 확인하세요.</p></div>
+            <div id="empty-msg" style="text-align: center; color: #8e8e93;"><p>📸 사진을 업로드하여 스타일을 확인하세요.</p></div>
             <div id="canvas-container"><canvas id="mainCanvas"></canvas></div>
         </div>
 
@@ -58,7 +58,7 @@
                     <div class="input-box full-row">
                         <label>레이아웃 스타일</label>
                         <select id="layoutType">
-                            <option value="default">기본 (Minimal)</option>
+                            <option value="default" selected>기본 (Minimal)</option>
                             <option value="modelFocus">모델명 강조 (Center)</option>
                             <option value="classicBar">클래식 바 (One-line)</option>
                         </select>
@@ -205,6 +205,7 @@
             const centerY = (img.height + imgPadding) + (bottomSpace * 0.48);
             const mainTextColor = selectedBgColor === "#000000" ? "#FFFFFF" : "#000000";
             const subTextColor = selectedBgColor === "#000000" ? "#CCCCCC" : "#666666";
+            
             const spec = [inputs.iso.value ? `ISO ${inputs.iso.value}` : '', inputs.focal.value, inputs.fNumber.value, inputs.shutter.value].filter(Boolean).join('  ');
             const dateTime = [inputs.date.value, inputs.time.value].filter(Boolean).join('   ');
 
@@ -233,25 +234,37 @@
                 ctx.font = `900 ${baseWidth * 0.05}px sans-serif`;
                 ctx.fillText(inputs.modelName.value || " ", canvas.width / 2, centerY - (bottomSpace * 0.05));
                 
-                ctx.fillStyle = inputs.brandColor.value;
+                const brandText = inputs.brandName.value;
+                const infoText = spec ? `  |  ${spec}` : "";
                 ctx.font = `bold ${baseWidth * 0.02}px sans-serif`;
-                ctx.fillText(`${inputs.brandName.value}  |  ${spec}`, canvas.width / 2, centerY + (bottomSpace * 0.15));
+                const totalWidth = ctx.measureText(brandText + infoText).width;
+                let startX = (canvas.width - totalWidth) / 2;
+
+                ctx.textAlign = "left";
+                // 위치를 기존 0.15에서 0.22로 내려서 모델명과의 간격을 벌림
+                ctx.fillStyle = inputs.brandColor.value;
+                ctx.fillText(brandText, startX, centerY + (bottomSpace * 0.22));
+                ctx.fillStyle = subTextColor;
+                ctx.fillText(infoText, startX + ctx.measureText(brandText).width, centerY + (bottomSpace * 0.22));
 
             } else if (layoutType.value === 'classicBar') {
+                const adjustedY = centerY + (bottomSpace * 0.05);
+                
                 ctx.textAlign = "left";
                 ctx.fillStyle = inputs.brandColor.value;
                 ctx.font = `900 ${baseWidth * 0.03}px sans-serif`;
-                ctx.fillText(inputs.brandName.value, sideMargin, centerY);
+                ctx.fillText(inputs.brandName.value, sideMargin, adjustedY);
+                
                 const bWidth = ctx.measureText(inputs.brandName.value).width;
                 ctx.fillStyle = mainTextColor;
                 ctx.font = `500 ${baseWidth * 0.03}px sans-serif`;
-                ctx.fillText(" | " + inputs.modelName.value, sideMargin + bWidth, centerY);
+                ctx.fillText(" | " + inputs.modelName.value, sideMargin + bWidth, adjustedY);
 
                 ctx.textAlign = "right";
                 ctx.fillStyle = subTextColor;
                 ctx.font = `bold ${baseWidth * 0.022}px sans-serif`;
                 const fullInfo = [spec, inputs.date.value].filter(Boolean).join('  ·  ');
-                ctx.fillText(fullInfo, canvas.width - sideMargin, centerY);
+                ctx.fillText(fullInfo, canvas.width - sideMargin, adjustedY);
             }
 
             downloadBtn.disabled = false;
