@@ -22,49 +22,31 @@
         .form-wrapper { width: 100%; max-width: 380px; margin: 0 auto; }
         
         h3 { margin: 0 0 25px 0; font-size: 22px; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
-
         .section-label { font-size: 10px; font-weight: 700; color: #a1a1a6; margin-bottom: 5px; display: block; text-transform: uppercase; }
-
         .upload-area { border: 2px dashed #aeaeb2; padding: 20px; border-radius: 12px; cursor: pointer; text-align: center; margin-bottom: 25px; display: block; font-weight: 600; color: #8e8e93; transition: 0.2s; }
         .upload-area:hover { background: #f5f5f7; border-color: var(--primary); }
-
         .style-mode-container { display: flex; gap: 8px; margin-bottom: 25px; flex-direction: column; }
         .mode-buttons { display: flex; gap: 8px; }
         .style-mode-btn { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #f5f5f7; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .style-mode-btn.active { background: #3a3a3c; color: white; border-color: #3a3a3c; }
-
         .layout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 25px; min-height: 180px; }
-        .layout-btn { 
-            padding: 10px; border: 1px solid var(--border); border-radius: 8px; 
-            background: #f5f5f7; font-size: 13px; font-weight: 600; cursor: pointer; 
-            transition: all 0.2s; color: #3a3a3c; height: 45px;
-        }
+        .layout-btn { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f5f5f7; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #3a3a3c; height: 45px; }
         .layout-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
         .setting-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .full-row { grid-column: span 2; }
         .input-box { display: flex; flex-direction: column; gap: 5px; }
         .input-box label { font-size: 10px; font-weight: 700; color: #a1a1a6; }
         input[type="text"] { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f5f5f7; width: 100%; outline: none; }
-        input[type="text"]:focus { border-color: var(--primary); background: #fff; }
         input[type="text"]:read-only { background: #e5e5ea; color: #8e8e93; cursor: not-allowed; }
         input[type="color"] { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; padding: 0; background: none; }
-        
         .palette-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 5px; }
         .color-dot { height: 30px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.1s; }
         .color-dot.active { border: 2.5px solid var(--primary); transform: scale(1.05); }
-        
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; margin-bottom: 40px; }
         .btn-download { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         .btn-share { background: var(--insta); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        #toast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.85); color: white; padding: 14px 28px; border-radius: 50px;
-            font-size: 13px; font-weight: 600; z-index: 10005; opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; text-align: center; min-width: 280px;
-        }
+        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: white; padding: 14px 28px; border-radius: 50px; font-size: 13px; font-weight: 600; z-index: 10005; opacity: 0; transition: all 0.4s; pointer-events: none; text-align: center; min-width: 280px; }
         #toast.show { opacity: 1; top: 40px; }
 
         @media (max-width: 768px) {
@@ -72,14 +54,12 @@
             .main-container { flex-direction: column; height: auto; }
             .preview-area { position: sticky; top: 0; z-index: 10; height: 50vh; padding: 15px; background: #D2D2D2; }
             canvas { max-height: 45vh; }
-            .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; overflow-y: visible; }
-            .form-wrapper { max-width: 100%; }
+            .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; }
         }
     </style>
 </head>
 <body>
     <div id="toast">Instagram을 선택해 Stories를 누르세요</div>
-
     <div class="main-container">
         <div class="preview-area">
             <div id="empty-msg"><p style="color:gray; font-weight:bold;">이미지를 업로드하세요.</p></div>
@@ -88,12 +68,7 @@
         <div class="sidebar">
             <div class="form-wrapper">
                 <h3>Watermark Editor</h3>
-                
-                <label class="upload-area">
-                    <input type="file" id="upload" accept="image/*" style="display:none">
-                    이미지 업로드
-                </label>
-
+                <label class="upload-area"><input type="file" id="upload" accept="image/*" style="display:none">이미지 업로드</label>
                 <div class="style-mode-container">
                     <span class="section-label">워터마크 스타일</span>
                     <div class="mode-buttons">
@@ -101,7 +76,6 @@
                         <button class="style-mode-btn" id="mode-custom">문구 커스텀</button>
                     </div>
                 </div>
-                
                 <div class="input-box full-row"><span class="section-label">레이아웃 스타일</span></div>
                 <div class="layout-grid" id="layoutButtonGroup">
                     <button class="layout-btn active" data-value="default">기본</button>
@@ -112,7 +86,6 @@
                     <button class="layout-btn" data-value="polaroid">폴라로이드</button>
                     <button class="layout-btn" data-value="minimalBorder">심플 보더</button>
                 </div>
-
                 <div class="setting-section">
                     <div class="input-box full-row">
                         <label>배경 색상 팔레트</label>
@@ -137,13 +110,8 @@
                             <div class="color-dot" style="background: #000000;" data-color="#000000"></div>
                         </div>
                     </div>
-                    
-                    <div class="input-box">
-                        <label id="main-color-label">브랜드 색상</label>
-                        <input type="color" id="mainColor" value="#00126b">
-                    </div>
+                    <div class="input-box"><label id="main-color-label">브랜드 색상</label><input type="color" id="mainColor" value="#00126b"></div>
                     <div class="input-box"><label>텍스트 색상</label><input type="color" id="textColor" value="#000000"></div>
-                    
                     <div id="section-info" style="display: contents;">
                         <div class="input-box"><label>브랜드</label><input type="text" id="brandName"></div>
                         <div class="input-box"><label>디바이스</label><input type="text" id="modelName"></div>
@@ -152,11 +120,9 @@
                         <div class="input-box"><label>조리개</label><input type="text" id="fNumber"></div>
                         <div class="input-box"><label>셔터스피드</label><input type="text" id="shutter"></div>
                     </div>
-
                     <div id="section-custom" style="display: none;">
                         <div class="input-box full-row"><label>사용자 문구</label><input type="text" id="customText" placeholder="나만의 문구를 입력하세요"></div>
                     </div>
-
                     <div class="input-box"><label>촬영 날짜</label><input type="text" id="date"></div>
                     <div class="input-box"><label>촬영 시각</label><input type="text" id="time"></div>
                 </div>
@@ -260,16 +226,13 @@
             return '#00126b'; 
         }
 
-        // 제약 로직 수정됨
+        // 제약 조건 함수
         function applyModelConstraint(id, value) {
             inputs[id].value = value || "";
-            // 모델명이 있으면 수정 불가(true), 없으면 가능(false)
             inputs[id].readOnly = !!value; 
         }
-
         function applyInfoConstraint(id, value) {
             inputs[id].value = value || "";
-            // 정보가 있으면 수정 가능(false), 없으면 불가(true)
             inputs[id].readOnly = !value; 
         }
 
@@ -283,34 +246,28 @@
                     currentImg = img;
                     EXIF.getData(img, function() {
                         const tags = EXIF.getAllTags(this);
-                        
-                        // 브랜드 & 모델명 (있으면 수정불가)
                         const brandRaw = tags.Make ? tags.Make.split(' ')[0] : "";
+                        
                         applyModelConstraint('brandName', brandRaw);
                         applyModelConstraint('modelName', tags.Model);
                         
-                        // 색상 처리
                         const autoBrandColor = getBrandColor(brandRaw);
                         savedBrandColor = autoBrandColor;
                         if(!isCustomMode) mainColorInput.value = autoBrandColor;
 
-                        // 사진 세부 정보 (있으면 수정가능, 없으면 불가)
                         applyInfoConstraint('iso', tags.ISOSpeedRatings);
                         applyInfoConstraint('focal', tags.FocalLengthIn35mmFilm ? tags.FocalLengthIn35mmFilm + "mm" : "");
                         applyInfoConstraint('fNumber', tags.FNumber ? "F" + parseFloat(tags.FNumber).toFixed(1) : "");
-                        
                         const shutterVal = tags.ExposureTime ? (tags.ExposureTime < 1 ? `1/${Math.round(1/tags.ExposureTime)}` : tags.ExposureTime) : "";
                         applyInfoConstraint('shutter', shutterVal);
 
-                        // 날짜 시간 (있으면 수정가능, 없으면 불가)
                         const rawDate = tags.DateTimeOriginal || "";
                         if (rawDate) {
                             const parts = rawDate.split(' ');
                             applyInfoConstraint('date', parts[0].replace(/:/g, '/'));
                             applyInfoConstraint('time', parts[1].substring(0, 5));
                         } else {
-                            applyInfoConstraint('date', "");
-                            applyInfoConstraint('time', "");
+                            applyInfoConstraint('date', ""); applyInfoConstraint('time', "");
                         }
 
                         document.getElementById('empty-msg').style.display = 'none';
@@ -323,24 +280,24 @@
             reader.readAsDataURL(file);
         });
 
-        // draw() 및 나머지 드로잉 로직은 사용자 제시 원본 유지 (수정 없음)
-        function draw() {
+        function draw(targetCanvas = canvas) {
             if(!currentImg) return;
             const img = currentImg;
+            const ctxRef = targetCanvas.getContext('2d');
             const baseWidth = img.width;
             let imgPadding = baseWidth * 0.04; 
             let bottomSpace = baseWidth * 0.22; 
             if(currentLayout === 'polaroid') { bottomSpace = baseWidth * 0.35; imgPadding = baseWidth * 0.06; }
             else if(currentLayout === 'minimalBorder') { bottomSpace = baseWidth * 0.08; imgPadding = baseWidth * 0.02; }
 
-            canvas.width = baseWidth + (imgPadding * 2);
-            canvas.height = img.height + imgPadding + bottomSpace;
-            ctx.fillStyle = selectedBgColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, imgPadding, imgPadding, baseWidth, img.height);
+            targetCanvas.width = baseWidth + (imgPadding * 2);
+            targetCanvas.height = img.height + imgPadding + bottomSpace;
+            ctxRef.fillStyle = selectedBgColor;
+            ctxRef.fillRect(0, 0, targetCanvas.width, targetCanvas.height);
+            ctxRef.drawImage(img, imgPadding, imgPadding, baseWidth, img.height);
             
             const sideMargin = imgPadding * 1.5; 
-            const centerY = (img.height + imgPadding) + ((canvas.height - (img.height + imgPadding)) / 2);
+            const centerY = (img.height + imgPadding) + ((targetCanvas.height - (img.height + imgPadding)) / 2);
             const highlightColor = mainColorInput.value;
             const otherTextColor = inputs.textColor.value;
             const softenedOtherColor = getSoftenedColor(otherTextColor, 0.6);
@@ -351,89 +308,101 @@
             const exif = isCustomMode ? "" : [inputs.iso.value ? `ISO ${inputs.iso.value}` : '', inputs.focal.value, inputs.fNumber.value, inputs.shutter.value].filter(Boolean).join('  ');
             const dateTime = [inputs.date.value, inputs.time.value].filter(Boolean).join('    ');
 
-            ctx.textBaseline = "middle";
+            ctxRef.textBaseline = "middle";
 
             if (currentLayout === 'default') {
-                ctx.textAlign = "left";
-                ctx.fillStyle = isCustomMode ? otherTextColor : highlightColor; 
-                ctx.font = `600 ${baseWidth * 0.038}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? "" : brand, sideMargin, centerY - (bottomSpace * 0.18));
-                ctx.fillStyle = isCustomMode ? highlightColor : otherTextColor; 
-                ctx.font = `bold ${baseWidth * 0.05}px "Pretendard"`;
-                ctx.fillText(mainText, sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
-                ctx.textAlign = "right";
-                ctx.fillStyle = otherTextColor; ctx.font = `600 ${baseWidth * 0.021}px "Montserrat"`; 
-                ctx.fillText(exif, canvas.width - sideMargin, centerY - (bottomSpace * 0.13));
-                ctx.fillStyle = softenedOtherColor; ctx.font = `500 ${baseWidth * 0.019}px "Pretendard"`; 
-                ctx.fillText(dateTime, canvas.width - sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
+                ctxRef.textAlign = "left";
+                ctxRef.fillStyle = isCustomMode ? otherTextColor : highlightColor; ctxRef.font = `600 ${baseWidth * 0.038}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? "" : brand, sideMargin, centerY - (bottomSpace * 0.18));
+                ctxRef.fillStyle = isCustomMode ? highlightColor : otherTextColor; ctxRef.font = `bold ${baseWidth * 0.05}px "Pretendard"`;
+                ctxRef.fillText(mainText, sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
+                ctxRef.textAlign = "right";
+                ctxRef.fillStyle = otherTextColor; ctxRef.font = `600 ${baseWidth * 0.021}px "Montserrat"`; 
+                ctxRef.fillText(exif, targetCanvas.width - sideMargin, centerY - (bottomSpace * 0.13));
+                ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `500 ${baseWidth * 0.019}px "Pretendard"`; 
+                ctxRef.fillText(dateTime, targetCanvas.width - sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
             } else if (currentLayout === 'modelFocus') {
-                ctx.textAlign = "center";
-                ctx.fillStyle = highlightColor; ctx.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
-                ctx.fillText(mainText, canvas.width / 2, centerY - (bottomSpace * 0.05));
-                ctx.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
-                ctx.fillStyle = softenedOtherColor; 
-                ctx.fillText(isCustomMode ? dateTime : `${brand}  |  ${exif}`, canvas.width / 2, centerY + (bottomSpace * 0.22));
+                ctxRef.textAlign = "center";
+                ctxRef.fillStyle = highlightColor; ctxRef.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
+                ctxRef.fillText(mainText, targetCanvas.width / 2, centerY - (bottomSpace * 0.05));
+                ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`; ctxRef.fillStyle = softenedOtherColor; 
+                ctxRef.fillText(isCustomMode ? dateTime : `${brand}  |  ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.22));
             } else if (currentLayout === 'classicBar') {
-                ctx.textAlign = "left";
-                ctx.fillStyle = highlightColor; ctx.font = `900 ${baseWidth * 0.03}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? mainText : brand, sideMargin, centerY);
+                ctxRef.textAlign = "left";
+                ctxRef.fillStyle = highlightColor; ctxRef.font = `900 ${baseWidth * 0.03}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? mainText : brand, sideMargin, centerY);
                 if(!isCustomMode) {
-                    const bW = ctx.measureText(brand).width;
-                    ctx.fillStyle = otherTextColor; ctx.font = `500 ${baseWidth * 0.03}px "Pretendard"`;
-                    ctx.fillText(" | " + model, sideMargin + bW, centerY);
+                    const bW = ctxRef.measureText(brand).width;
+                    ctxRef.fillStyle = otherTextColor; ctxRef.font = `500 ${baseWidth * 0.03}px "Pretendard"`;
+                    ctxRef.fillText(" | " + model, sideMargin + bW, centerY);
                 }
-                ctx.textAlign = "right";
-                ctx.fillStyle = softenedOtherColor; ctx.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
-                ctx.fillText([exif, inputs.date.value].filter(Boolean).join('  ·  '), canvas.width - sideMargin, centerY);
+                ctxRef.textAlign = "right";
+                ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
+                ctxRef.fillText([exif, inputs.date.value].filter(Boolean).join('  ·  '), targetCanvas.width - sideMargin, centerY);
             } else if (currentLayout === 'filmData') {
-                const filmOrange = "#ff8c00";
-                ctx.textAlign = "right";
-                ctx.fillStyle = filmOrange; ctx.font = `900 ${baseWidth * 0.032}px "Pretendard"`;
-                ctx.fillText(inputs.date.value, canvas.width - sideMargin, centerY - (bottomSpace * 0.05));
-                ctx.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? mainText : [model, "ㅣ", exif].filter(Boolean).join(' '), canvas.width - sideMargin, centerY + (bottomSpace * 0.15));
+                ctxRef.textAlign = "right"; ctxRef.fillStyle = "#ff8c00"; ctxRef.font = `900 ${baseWidth * 0.032}px "Pretendard"`;
+                ctxRef.fillText(inputs.date.value, targetCanvas.width - sideMargin, centerY - (bottomSpace * 0.05));
+                ctxRef.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? mainText : [model, "ㅣ", exif].filter(Boolean).join(' '), targetCanvas.width - sideMargin, centerY + (bottomSpace * 0.15));
             } else if (currentLayout === 'magazine') {
-                ctx.textAlign = "left";
-                ctx.fillStyle = highlightColor; ctx.font = `900 ${baseWidth * 0.06}px "Pretendard"`;
+                ctxRef.textAlign = "left"; ctxRef.fillStyle = highlightColor; ctxRef.font = `900 ${baseWidth * 0.06}px "Pretendard"`;
                 const firstChar = isCustomMode ? (mainText[0] || "M") : (brand[0] || "C");
-                ctx.fillText(firstChar, sideMargin, centerY);
-                const initW = ctx.measureText(firstChar).width;
-                ctx.fillStyle = otherTextColor; ctx.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? mainText.substring(1) : brand.substring(1), sideMargin + initW + 5, centerY - (bottomSpace * 0.08));
-                ctx.font = `500 ${baseWidth * 0.018}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? dateTime : model, sideMargin + initW + 5, centerY + (bottomSpace * 0.08));
-                ctx.textAlign = "right"; ctx.fillStyle = softenedOtherColor; ctx.font = `600 ${baseWidth * 0.02}px "Pretendard"`;
-                ctx.fillText(exif, canvas.width - sideMargin, centerY);
+                ctxRef.fillText(firstChar, sideMargin, centerY);
+                const initW = ctxRef.measureText(firstChar).width;
+                ctxRef.fillStyle = otherTextColor; ctxRef.font = `bold ${baseWidth * 0.022}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? mainText.substring(1) : brand.substring(1), sideMargin + initW + 5, centerY - (bottomSpace * 0.08));
+                ctxRef.font = `500 ${baseWidth * 0.018}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? dateTime : model, sideMargin + initW + 5, centerY + (bottomSpace * 0.08));
+                ctxRef.textAlign = "right"; ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `600 ${baseWidth * 0.02}px "Pretendard"`;
+                ctxRef.fillText(exif, targetCanvas.width - sideMargin, centerY);
             } else if (currentLayout === 'polaroid') {
-                ctx.textAlign = "center";
-                ctx.fillStyle = softenedOtherColor; ctx.font = `italic 500 ${baseWidth * 0.035}px "Pretendard"`;
-                ctx.fillText(dateTime, canvas.width / 2, centerY - (bottomSpace * 0.05));
-                ctx.fillStyle = highlightColor; ctx.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
-                ctx.fillText(isCustomMode ? mainText : `${brand} ${model} ${exif}`, canvas.width / 2, centerY + (bottomSpace * 0.15));
+                ctxRef.textAlign = "center"; ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `italic 500 ${baseWidth * 0.035}px "Pretendard"`;
+                ctxRef.fillText(dateTime, targetCanvas.width / 2, centerY - (bottomSpace * 0.05));
+                ctxRef.fillStyle = highlightColor; ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
+                ctxRef.fillText(isCustomMode ? mainText : `${brand} ${model} ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.15));
             } else if (currentLayout === 'minimalBorder') {
-                ctx.textAlign = "right";
-                ctx.fillStyle = highlightColor; ctx.font = `500 ${baseWidth * 0.015}px "Pretendard"`;
-                ctx.fillText(`${mainText}  ${exif}  ${inputs.date.value}`, canvas.width - sideMargin, centerY);
+                ctxRef.textAlign = "right"; ctxRef.fillStyle = highlightColor; ctxRef.font = `500 ${baseWidth * 0.015}px "Pretendard"`;
+                ctxRef.fillText(`${mainText}  ${exif}  ${inputs.date.value}`, targetCanvas.width - sideMargin, centerY);
             }
             downloadBtn.disabled = false; shareBtn.disabled = false;
         }
 
         downloadBtn.addEventListener('click', () => {
-        
             const link = document.createElement('a');
             link.download = `Photo_${Date.now()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.95); link.click();
         });
 
+        // 인스타 스토리 공유 (원본 레이아웃 복구)
         shareBtn.addEventListener('click', async () => {
             try {
                 toast.classList.add('show');
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+                const storyCanvas = document.createElement('canvas');
+                const sCtx = storyCanvas.getContext('2d');
+                storyCanvas.width = 1080; storyCanvas.height = 1920;
+                
+                // 배경 채우기 (밝은 회색)
+                sCtx.fillStyle = '#F2F2F7';
+                sCtx.fillRect(0, 0, 1080, 1920);
+
+                const scale = (1080 * 0.7) / canvas.width;
+                const sw = canvas.width * scale;
+                const sh = canvas.height * scale;
+                const sx = (1080 - sw) / 2;
+                const sy = (1920 - sh) / 2;
+
+                // 그림자 효과 복구
+                sCtx.shadowColor = 'rgba(0,0,0,0.2)';
+                sCtx.shadowBlur = 40;
+                sCtx.shadowOffsetY = 20;
+                sCtx.drawImage(canvas, sx, sy, sw, sh);
+
+                const blob = await new Promise(resolve => storyCanvas.toBlob(resolve, 'image/jpeg', 0.95));
                 const file = new File([blob], `Insta_Story_${Date.now()}.jpg`, { type: 'image/jpeg' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'Share to Instagram' });
+                    await navigator.share({ files: [file], title: 'Instagram Story' });
                 }
-            } catch (err) { console.error("공유 실패:", err); }
+            } catch (err) { console.error("공유 에러:", err); }
             finally { setTimeout(() => toast.classList.remove('show'), 2000); }
         });
     </script>
