@@ -46,15 +46,58 @@
         .btn-download { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         .btn-share { background: var(--insta); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
-        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: white; padding: 14px 28px; border-radius: 50px; font-size: 13px; font-weight: 600; z-index: 10005; opacity: 0; transition: all 0.4s; pointer-events: none; text-align: center; min-width: 280px; }
-        #toast.show { opacity: 1; top: 40px; }
 
+        /* [반응형 알림 팝업 스타일] */
+        #toast { 
+            position: fixed; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%) scale(0.7); 
+            padding: 14px 28px; 
+            border-radius: 30px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            z-index: 10005; 
+            opacity: 0; 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            pointer-events: none; 
+            text-align: center; 
+            min-width: 280px; 
+            visibility: hidden;
+        }
+
+        /* PC 스타일: 하얀 배경 */
+        @media (min-width: 769px) {
+            #toast {
+                background-color: #ffffff;
+                color: #1d1d1f;
+               
+                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* 모바일 스타일: 블러 배경 */
         @media (max-width: 768px) {
+            #toast {
+                background-color: rgba(0, 0, 0, 0.3); 
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                backdrop-filter: blur(30px) saturate(180%);
+                color: #F2F2FF; 
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                
+            }
             body { overflow: auto; height: auto; }
             .main-container { flex-direction: column; height: auto; }
             .preview-area { position: sticky; top: 0; z-index: 10; height: 50vh; padding: 15px; background: #D2D2D2; }
             canvas { max-height: 45vh; }
             .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; }
+        }
+
+        #toast.show { 
+            opacity: 1; 
+            visibility: visible;
+            transform: translateX(-50%) scale(1); 
+            top: 40px;
         }
     </style>
 </head>
@@ -226,7 +269,6 @@
             return '#00126b'; 
         }
 
-        // 제약 조건 함수
         function applyModelConstraint(id, value) {
             inputs[id].value = value || "";
             inputs[id].readOnly = !!value; 
@@ -247,20 +289,16 @@
                     EXIF.getData(img, function() {
                         const tags = EXIF.getAllTags(this);
                         const brandRaw = tags.Make ? tags.Make.split(' ')[0] : "";
-                        
                         applyModelConstraint('brandName', brandRaw);
                         applyModelConstraint('modelName', tags.Model);
-                        
                         const autoBrandColor = getBrandColor(brandRaw);
                         savedBrandColor = autoBrandColor;
                         if(!isCustomMode) mainColorInput.value = autoBrandColor;
-
                         applyInfoConstraint('iso', tags.ISOSpeedRatings);
                         applyInfoConstraint('focal', tags.FocalLengthIn35mmFilm ? tags.FocalLengthIn35mmFilm + "mm" : "");
                         applyInfoConstraint('fNumber', tags.FNumber ? "F" + parseFloat(tags.FNumber).toFixed(1) : "");
                         const shutterVal = tags.ExposureTime ? (tags.ExposureTime < 1 ? `1/${Math.round(1/tags.ExposureTime)}` : tags.ExposureTime) : "";
                         applyInfoConstraint('shutter', shutterVal);
-
                         const rawDate = tags.DateTimeOriginal || "";
                         if (rawDate) {
                             const parts = rawDate.split(' ');
@@ -269,7 +307,6 @@
                         } else {
                             applyInfoConstraint('date', ""); applyInfoConstraint('time', "");
                         }
-
                         document.getElementById('empty-msg').style.display = 'none';
                         document.getElementById('canvas-container').style.display = 'block';
                         draw();
@@ -317,10 +354,9 @@
                 ctxRef.fillStyle = isCustomMode ? highlightColor : otherTextColor; ctxRef.font = `bold ${baseWidth * 0.05}px "Pretendard"`;
                 ctxRef.fillText(mainText, sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
                 ctxRef.textAlign = "right";
-                ctxRef.fillStyle = otherTextColor; ctxRef.font = `580 ${baseWidth * 0.021}px "Montserrat"`; 
+                ctxRef.fillStyle = otherTextColor; ctxRef.font = `530 ${baseWidth * 0.021}px "Montserrat"`; 
                 ctxRef.fillText(exif, targetCanvas.width - sideMargin, centerY - (bottomSpace * 0.13));
-                // 여기에서 dateTime의 색상을 softenedOtherColor로 변경함
-                ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `500 ${baseWidth * 0.019}px "Pretendard"`; 
+                ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `520 ${baseWidth * 0.019}px "Pretendard"`; 
                 ctxRef.fillText(dateTime, targetCanvas.width - sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
             } else if (currentLayout === 'modelFocus') {
                 ctxRef.textAlign = "center";
@@ -374,37 +410,47 @@
             link.href = canvas.toDataURL('image/jpeg', 0.95); link.click();
         });
 
-        // 인스타 스토리 공유 (원본 레이아웃 복구)
         shareBtn.addEventListener('click', async () => {
             try {
+                toast.innerText = "Instagram을 선택해 Stories를 누르세요";
                 toast.classList.add('show');
+
                 const storyCanvas = document.createElement('canvas');
                 const sCtx = storyCanvas.getContext('2d');
-                storyCanvas.width = 1080; storyCanvas.height = 1920;
-                
-                // 배경 채우기 (밝은 회색)
-                sCtx.fillStyle = '#F2F2F7';
-                sCtx.fillRect(0, 0, 1080, 1920);
 
-                const scale = (1080 * 0.7) / canvas.width;
+                const qualityScale = 2; 
+                storyCanvas.width = 1080 * qualityScale;
+                storyCanvas.height = 1920 * qualityScale;
+                
+                sCtx.fillStyle = '#F2F2F7';
+                sCtx.fillRect(0, 0, storyCanvas.width, storyCanvas.height);
+
+                const targetWidth = (1080 * 0.85) * qualityScale;
+                const scale = targetWidth / canvas.width;
                 const sw = canvas.width * scale;
                 const sh = canvas.height * scale;
-                const sx = (1080 - sw) / 2;
-                const sy = (1920 - sh) / 2;
+                const sx = (storyCanvas.width - sw) / 2;
+                const sy = (storyCanvas.height - sh) / 2;
 
-                // 그림자 효과 복구
-                sCtx.shadowColor = 'rgba(0,0,0,0.2)';
-                sCtx.shadowBlur = 40;
-                sCtx.shadowOffsetY = 20;
+                sCtx.shadowColor = 'rgba(0,0,0,0.15)';
+                sCtx.shadowBlur = 30 * qualityScale;
+                sCtx.shadowOffsetY = 15 * qualityScale;
+
                 sCtx.drawImage(canvas, sx, sy, sw, sh);
 
-                const blob = await new Promise(resolve => storyCanvas.toBlob(resolve, 'image/jpeg', 0.95));
-                const file = new File([blob], `Insta_Story_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                const blob = await new Promise(resolve => storyCanvas.toBlob(resolve, 'image/jpeg', 1.0));
+                const file = new File([blob], `Insta_Story_HD_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({ files: [file], title: 'Instagram Story' });
                 }
-            } catch (err) { console.error("공유 에러:", err); }
-            finally { setTimeout(() => toast.classList.remove('show'), 2000); }
+            } catch (err) { 
+                console.error("공유 에러:", err); 
+            } finally { 
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 1000); 
+            }
         });
     </script>
 </body>
