@@ -312,20 +312,21 @@
 
             if (currentLayout === 'default') {
                 ctxRef.textAlign = "left";
-                ctxRef.fillStyle = isCustomMode ? otherTextColor : highlightColor; ctxRef.font = `600 ${baseWidth * 0.038}px "Pretendard"`;
+                ctxRef.fillStyle = isCustomMode ? otherTextColor : highlightColor; ctxRef.font = `650 ${baseWidth * 0.038}px "Pretendard"`;
                 ctxRef.fillText(isCustomMode ? "" : brand, sideMargin, centerY - (bottomSpace * 0.18));
                 ctxRef.fillStyle = isCustomMode ? highlightColor : otherTextColor; ctxRef.font = `bold ${baseWidth * 0.05}px "Pretendard"`;
                 ctxRef.fillText(mainText, sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
                 ctxRef.textAlign = "right";
-                ctxRef.fillStyle = otherTextColor; ctxRef.font = `600 ${baseWidth * 0.021}px "Montserrat"`; 
+                ctxRef.fillStyle = otherTextColor; ctxRef.font = `580 ${baseWidth * 0.021}px "Montserrat"`; 
                 ctxRef.fillText(exif, targetCanvas.width - sideMargin, centerY - (bottomSpace * 0.13));
+                // 여기에서 dateTime의 색상을 softenedOtherColor로 변경함
                 ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `500 ${baseWidth * 0.019}px "Pretendard"`; 
                 ctxRef.fillText(dateTime, targetCanvas.width - sideMargin, isCustomMode ? centerY : centerY + (bottomSpace * 0.04));
             } else if (currentLayout === 'modelFocus') {
                 ctxRef.textAlign = "center";
-                ctxRef.fillStyle = highlightColor; ctxRef.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
+                ctxRef.fillStyle = otherTextColor; ctxRef.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
                 ctxRef.fillText(mainText, targetCanvas.width / 2, centerY - (bottomSpace * 0.05));
-                ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`; ctxRef.fillStyle = softenedOtherColor; 
+                ctxRef.font =highlightColor; ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`; ctxRef.fillStyle = softenedOtherColor; 
                 ctxRef.fillText(isCustomMode ? dateTime : `${brand}  |  ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.22));
             } else if (currentLayout === 'classicBar') {
                 ctxRef.textAlign = "left";
@@ -359,9 +360,9 @@
                 ctxRef.textAlign = "center"; ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `italic 500 ${baseWidth * 0.035}px "Pretendard"`;
                 ctxRef.fillText(dateTime, targetCanvas.width / 2, centerY - (bottomSpace * 0.05));
                 ctxRef.fillStyle = highlightColor; ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
-                ctxRef.fillText(isCustomMode ? mainText : `${brand} ${model} ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.15));
+                ctxRef.fillText(isCustomMode ? mainText : `${model} ㅣ ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.15));
             } else if (currentLayout === 'minimalBorder') {
-                ctxRef.textAlign = "right"; ctxRef.fillStyle = highlightColor; ctxRef.font = `500 ${baseWidth * 0.015}px "Pretendard"`;
+                ctxRef.textAlign = "right"; ctxRef.fillStyle = otherTextColor; ctxRef.font = `500 ${baseWidth * 0.015}px "Pretendard"`;
                 ctxRef.fillText(`${mainText}  ${exif}  ${inputs.date.value}`, targetCanvas.width - sideMargin, centerY);
             }
             downloadBtn.disabled = false; shareBtn.disabled = false;
