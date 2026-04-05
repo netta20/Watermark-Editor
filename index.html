@@ -9,10 +9,9 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
     <style>
-        :root { --primary: #007AFF; --bg: #f2f2f7; --sidebar-bg: #ffffff; --border: #e5e5ea; }
+        :root { --primary: #007AFF; --insta: #E1306C; --bg: #f2f2f7; --sidebar-bg: #ffffff; --border: #e5e5ea; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* 기본 레이아웃 (PC) */
         body { font-family: "Pretendard Variable", sans-serif; background: var(--bg); margin: 0; height: 100vh; overflow: hidden; }
         .main-container { display: flex; width: 100%; height: 100vh; }
         .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #d1d1d6; overflow: hidden; }
@@ -36,7 +35,7 @@
         .setting-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .full-row { grid-column: span 2; }
         .input-box { display: flex; flex-direction: column; gap: 5px; }
-        .input-box label { font-size: 10px; font-weight: 700; color: #a1a1a6; text-transform: uppercase; }
+        .input-box label { font-size: 10px; font-weight: 700; color: #a1a1a6; }
         input[type="text"] { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f5f5f7; width: 100%; }
         input:read-only { background: #e9e9eb; color: #aeaeb2; cursor: not-allowed; border: 1px solid #d1d1d6; }
         input[type="color"] { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; padding: 0; }
@@ -45,27 +44,45 @@
         .color-dot { height: 30px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.1s; }
         .color-dot.active { border: 2.5px solid var(--primary); }
         
-        .btn-download { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; margin-bottom: 40px; }
-        .btn-download:disabled { background: #d1d1d6; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+        .btn-download { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
+        .btn-share { background: var(--insta); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
+        .btn-download:disabled, .btn-share:disabled { background: #d1d1d6; cursor: not-allowed; }
 
-        /* --- 모바일 최적화 (768px 이하) --- */
+        /* [수정] 상단 토스트 메시지 스타일 */
+        #toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10005; /* 공유창보다 위에 뜨도록 설정 */
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-align: center;
+            min-width: 280px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        #toast.show {
+            opacity: 1;
+            top: 40px; /* 상단에서 40px 내려옴 */
+        }
+
         @media (max-width: 768px) {
             body { overflow: auto; height: auto; }
             .main-container { flex-direction: column; height: auto; }
-            .preview-area { 
-                position: sticky; top: 0; z-index: 10;
-                height: 50vh; padding: 15px; 
-                background: D2D2D2; /* 모바일에서 대비감 상향 */
-            }
+            .preview-area { position: sticky; top: 0; z-index: 10; height: 50vh; padding: 15px; background: #D2D2D2; }
             canvas { max-height: 45vh; }
-            .sidebar { 
-                width: 100%; border-left: none; border-top: 1px solid #d1d1d6; 
-                padding: 20px; height: auto; overflow-y: visible;
-            }
+            .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; overflow-y: visible; }
             .form-wrapper { max-width: 100%; }
-            .layout-grid { grid-template-columns: repeat(3, 1fr); } /* 모바일에서 공간 활용 */
+            .layout-grid { grid-template-columns: repeat(3, 1fr); }
             .palette-container { grid-template-columns: repeat(9, 1fr); }
-            h3 { font-size: 18px; }
         }
     </style>
 </head>
@@ -83,7 +100,7 @@
                 <div class="input-box full-row" style="margin-bottom: 8px;"><label>레이아웃 스타일</label></div>
                 <div class="layout-grid" id="layoutButtonGroup">
                     <button class="layout-btn active" data-value="default">기본</button>
-                    <button class="layout-btn" data-value="modelFocus">모델 강조</button>
+                    <button class="layout-btn" data-value="modelFocus">디바이스 강조</button>
                     <button class="layout-btn" data-value="classicBar">클래식 바</button>
                     <button class="layout-btn" data-value="filmData">필름 레트로</button>
                     <button class="layout-btn" data-value="magazine">매거진</button>
@@ -126,22 +143,37 @@
                     <div class="input-box"><label>날짜</label><input type="text" id="date"></div>
                     <div class="input-box"><label>시각</label><input type="text" id="time"></div>
                 </div>
-                <button id="download" class="btn-download" disabled>이미지 저장하기</button>
+                <div class="btn-group">
+                    <button id="download" class="btn-download" disabled>이미지 저장하기</button>
+                    <button id="share" class="btn-share" disabled>스토리에 공유하기</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <div id="toast"></div>
+
     <script>
-        // JS 로직은 원본과 동일하게 유지 (기능 보존)
         const upload = document.getElementById('upload');
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
         const downloadBtn = document.getElementById('download');
+        const shareBtn = document.getElementById('share');
         const layoutButtons = document.querySelectorAll('.layout-btn');
+        const toast = document.getElementById('toast');
         
         let currentLayout = "default";
         let selectedBgColor = "#ffffff";
         let currentImg = null;
+
+        // [수정] 토스트 알림 표시 함수 (상단용)
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
 
         const fields = ['brandName', 'brandColor', 'textColor', 'modelName', 'iso', 'focal', 'fNumber', 'shutter', 'date', 'time'];
         const inputs = {};
@@ -268,7 +300,6 @@
 
             ctx.textBaseline = "middle";
 
-            // 레이아웃 드로잉 로직 (기능 유지)
             if (currentLayout === 'default') {
                 ctx.textAlign = "left";
                 ctx.fillStyle = inputs.brandColor.value; ctx.font = `600 ${baseWidth * 0.038}px "Pretendard"`;
@@ -333,6 +364,7 @@
                 ctx.fillText(`${inputs.modelName.value}  ${spec}  ${inputs.date.value}`, canvas.width - sideMargin, centerY);
             }
             downloadBtn.disabled = false;
+            shareBtn.disabled = false;
         }
 
         downloadBtn.addEventListener('click', () => {
@@ -340,6 +372,56 @@
             link.download = `Photo_${Date.now()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.95); 
             link.click();
+        });
+
+        // 인스타 스토리용 공유 로직
+        shareBtn.addEventListener('click', async () => {
+            // 상단 알림 표시
+            showToast("Instagram을 선택하고 Stories를 누르세요.");
+
+            try {
+                const storyCanvas = document.createElement('canvas');
+                const sCtx = storyCanvas.getContext('2d');
+                
+                const marginMultiplier = 1.4;
+                const storyWidth = canvas.width * marginMultiplier;
+                const storyHeight = (storyWidth * 16) / 9;
+                
+                storyCanvas.width = storyWidth;
+                storyCanvas.height = storyHeight;
+                
+                sCtx.fillStyle = "#E5E5EA";
+                sCtx.fillRect(0, 0, storyWidth, storyHeight);
+                
+                sCtx.shadowColor = "rgba(0, 0, 0, 0.25)";
+                sCtx.shadowBlur = storyWidth * 0.04;
+                sCtx.shadowOffsetX = 0;
+                sCtx.shadowOffsetY = storyWidth * 0.02;
+
+                const drawWidth = canvas.width;
+                const drawHeight = canvas.height;
+                const xPos = (storyWidth - drawWidth) / 2;
+                const yPos = (storyHeight - drawHeight) / 2;
+                
+                sCtx.drawImage(canvas, xPos, yPos);
+
+                const blob = await new Promise(resolve => storyCanvas.toBlob(resolve, 'image/jpeg', 0.95));
+                const file = new File([blob], `Story_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: '인스타그램 스토리 공유',
+                        text: '워터마크 사진 공유'
+                    });
+                } else {
+                    showToast("이미지를 저장한 후 직접 업로드해주세요.");
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error("공유 중 오류 발생:", err);
+                }
+            }
         });
     </script>
 </body>
