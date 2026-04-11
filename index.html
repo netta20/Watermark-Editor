@@ -105,10 +105,10 @@
         bottom: 15px;
         left: 15px;
         right: 15px;
-        pointer-events: none; /* 컨테이너가 클릭을 방해하지 않도록 */
+        pointer-events: none;
     }
 
-    /* [축소 속도] 기존 애니메이션 그대로 유지 */
+   /* [축소 속도] 기존 애니메이션 그대로 유지 */
     .expandable-button {
         pointer-events: auto; /* 버튼만 클릭 가능하게 */
         transition: width 0.5s cubic-bezier(0.2, 1, 0.3, 1), 
@@ -126,20 +126,21 @@
         overflow: hidden;
     }
 
-    /* [확장 속도] 기존 애니메이션 그대로 유지 + 너비만 제한 */
+    /* [확장 상태] 화면 가로폭에 맞춰 꽉 차게 수정 */
     .expandable-button.expanded {
         transition: width 0.6s cubic-bezier(0.2, 1, 0.3, 1), 
                     max-height 1s cubic-bezier(0.2, 1, 0.3, 0.5), 
-                    border-radius 0.01s ease;
+                    border-radius 0.2s ease;
 
-        /* [수정] 100% 대신 300px로 제한하여 사진처럼 만듦 */
-        width: 600px !important; 
-        max-height: 460px !important;
+  width: 100% !important; /* 가로 꽉 차게 */
+        height: auto !important; /* 내용에 맞게 조절 */
+        max-height: 520px !important; /* 모바일에서 적절한 높이값 세팅 */
         border-radius: 20px !important;
     }
 
-.button-label {
-        font-size: 0 !important; /* "정보가 안 보이나요?" 글자를 아예 안 보이게 함 */
+    /* ⓘ 아이콘 설정 유지 */
+    .button-label {
+        font-size: 0 !important;
         color: transparent !important;
         display: flex !important;
         align-items: center;
@@ -151,25 +152,28 @@
         left: 0;
     }
 
-    /* ⓘ 기호만 다시 보이게 설정 */
     .button-label::after {
         content: "ⓘ";
-        font-size: 20px !important; /* 아이콘 크기 */
+        font-size: 20px !important;
         color: #ffffff !important;
         display: block;
     }
 
-    /* 확장 시 아이콘 숨김 */
+    /* 확장 시 아이콘 숨김 유지 */
     .expandable-button.expanded .button-label {
         opacity: 0 !important;
+        visibility: hidden;
     }
 
+    /* 내부 텍스트 및 버튼 컬러 유지 */
     .help-header { color: #ffffff !important; }
     .help-text { color: #ffffff !important; }
     .help-text b { color: #5ac8fa !important; }
-    .close-btn { background: rgba(255, 255, 255, 0.25) !important; color: #ffffff !important; }
-}
-/* ------------------------------------------------------
+    .close-btn { 
+        background: rgba(255, 255, 255, 0.25) !important; 
+        color: #ffffff !important; 
+    }
+}/* ------------------------------------------------------
    3. 내부 요소 싱크 조절
 ------------------------------------------------------ */
 .help-inner-content {
