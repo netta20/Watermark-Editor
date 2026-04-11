@@ -17,7 +17,185 @@
         .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #d1d1d6; overflow: hidden; }
         #canvas-container { max-width: 100%; max-height: 100%; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         canvas { display: block; max-width: 100%; max-height: 85vh; width: auto; height: auto; border-radius: 4px; }
+
+/* [공통] 기본 레이아웃 - 초기 숨김 상태 설정 */
+.help-container {
+    z-index: 1000;
+    display: none; /* [수정] 기본적으로 숨김 */
+    flex-direction: column;
+    align-items: flex-end;
+    opacity: 0; /* [수정] 애니메이션 시작점 */
+    transition: opacity 0.5s ease;
+}
+
+.expandable-button {
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ------------------------------------------------------
+   1. PC 환경 (769px 이상)
+------------------------------------------------------ */
+@media (min-width: 760px) {
+    .help-container {
+        position: absolute;
+        bottom: 24px;
+        right: 470px;
+    }
+
+    /* [축소 속도] 기본 상태: 닫힐 때 적용됨 */
+    .expandable-button {
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                    border-radius 0.3s ease;
         
+        width: 150px;
+        max-height: 40px;
+        background-color: #ffffff;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* [확장 속도] 확장 상태: 펼쳐질 때 적용됨 */
+    .expandable-button.expanded {
+        transition: width 0.5s cubic-bezier(0.2, 1, 0.3, 1), 
+                    max-height 0.7s cubic-bezier(0.2, 1, 0.3, 1), 
+                    border-radius 0.4s ease;
+        
+        width: 350px;
+        max-height: 430px;
+    }
+
+    .button-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+
+    /* --- [여기서 글자 크기 조절] --- */
+    font-size: 13px; /* 기존보다 조금 작게 조절 (기본값은 보통 14~16px) */
+    letter-spacing: -0.3px; /* 자간을 살짝 줄이면 가독성이 좋아지고 공간을 덜 차지합니다 */
+}
+
+/* 모바일에서는 화면이 더 좁으니 조금 더 줄여줍니다 */
+@media (max-width: 768px) {
+    .button-label {
+        font-size: 12px; /* 모바일용 더 작은 글씨 */
+    }
+}
+    .help-header { color: #1d1d1f; }
+    .help-text { color: #48484a; }
+}
+
+/* ------------------------------------------------------
+   2. 모바일 환경 (768px 이하)
+------------------------------------------------------ */
+@media (max-width: 768px) {
+    .help-container {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+        pointer-events: none; /* 컨테이너가 클릭을 방해하지 않도록 */
+    }
+
+    /* [축소 속도] 기존 애니메이션 그대로 유지 */
+    .expandable-button {
+        pointer-events: auto; /* 버튼만 클릭 가능하게 */
+        transition: width 0.5s cubic-bezier(0.2, 1, 0.3, 1), 
+                    max-height 0.5s cubic-bezier(0.2, 1, 0.3, 1), 
+                    border-radius 0.2s ease;
+
+        /* 아이콘처럼 보이기 위해 가로폭 줄임 */
+        width: 42px; 
+        max-height: 38px;
+        margin-left: auto; /* 오른쪽 하단 유지 */
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        backdrop-filter: blur(30px) saturate(180%);
+        border-radius: 21px; /* 원형 유지 */
+        overflow: hidden;
+    }
+
+    /* [확장 속도] 기존 애니메이션 그대로 유지 + 너비만 제한 */
+    .expandable-button.expanded {
+        transition: width 0.6s cubic-bezier(0.2, 1, 0.3, 1), 
+                    max-height 1s cubic-bezier(0.2, 1, 0.3, 0.5), 
+                    border-radius 0.01s ease;
+
+        /* [수정] 100% 대신 300px로 제한하여 사진처럼 만듦 */
+        width: 600px !important; 
+        max-height: 460px !important;
+        border-radius: 20px !important;
+    }
+
+.button-label {
+        font-size: 0 !important; /* "정보가 안 보이나요?" 글자를 아예 안 보이게 함 */
+        color: transparent !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: absolute !important;
+        width: 100% !important;
+        height: 100% !important;
+        top: 0;
+        left: 0;
+    }
+
+    /* ⓘ 기호만 다시 보이게 설정 */
+    .button-label::after {
+        content: "ⓘ";
+        font-size: 20px !important; /* 아이콘 크기 */
+        color: #ffffff !important;
+        display: block;
+    }
+
+    /* 확장 시 아이콘 숨김 */
+    .expandable-button.expanded .button-label {
+        opacity: 0 !important;
+    }
+
+    .help-header { color: #ffffff !important; }
+    .help-text { color: #ffffff !important; }
+    .help-text b { color: #5ac8fa !important; }
+    .close-btn { background: rgba(255, 255, 255, 0.25) !important; color: #ffffff !important; }
+}
+/* ------------------------------------------------------
+   3. 내부 요소 싱크 조절
+------------------------------------------------------ */
+.help-inner-content {
+    padding: 24px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.expandable-button.expanded .help-inner-content {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease 0.2s, transform 0.3s ease 0.2s;
+    pointer-events: auto;
+}
+
+.expandable-button.expanded .button-label { opacity: 0; }
+
+.help-header { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+.help-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.help-item:last-child { border-bottom: none; }
+.help-icon { font-size: 14px; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255,255,255,0.1); }
+.help-text { font-size: 13px; line-height: 1.6; flex: 1; }
+.close-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; border: none; margin-top: 10px; }
+
         .sidebar { width: 450px; background: var(--sidebar-bg); border-left: 1px solid #d1d1d6; padding: 30px; overflow-y: auto; }
         .form-wrapper { width: 100%; max-width: 380px; margin: 0 auto; }
         
@@ -47,7 +225,6 @@
         .btn-share { background: var(--insta); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* [반응형 알림 팝업 스타일] */
         #toast { 
             position: fixed; 
             top: 20px; 
@@ -66,17 +243,10 @@
             visibility: hidden;
         }
 
-        /* PC 스타일: 하얀 배경 */
         @media (min-width: 769px) {
-            #toast {
-                background-color: #ffffff;
-                color: #1d1d1f;
-               
-                box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            }
+            #toast { background-color: #ffffff; color: #1d1d1f; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         }
 
-        /* 모바일 스타일: 블러 배경 */
         @media (max-width: 768px) {
             #toast {
                 background-color: rgba(0, 0, 0, 0.3); 
@@ -84,7 +254,6 @@
                 backdrop-filter: blur(30px) saturate(180%);
                 color: #F2F2FF; 
                 box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-                
             }
             body { overflow: auto; height: auto; }
             .main-container { flex-direction: column; height: auto; }
@@ -93,12 +262,7 @@
             .sidebar { width: 100%; border-left: none; border-top: 1px solid #d1d1d6; padding: 20px; height: auto; }
         }
 
-        #toast.show { 
-            opacity: 1; 
-            visibility: visible;
-            transform: translateX(-50%) scale(1); 
-            top: 40px;
-        }
+        #toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); top: 40px; }
     </style>
 </head>
 <body>
@@ -107,7 +271,21 @@
         <div class="preview-area">
             <div id="empty-msg"><p style="color:gray; font-weight:bold;">이미지를 업로드하세요.</p></div>
             <div id="canvas-container"><canvas id="mainCanvas"></canvas></div>
+            
+            <div id="helpContainer" class="help-container">
+                <div class="expandable-button" id="helpButton">
+                    <div class="button-label">정보가 안 보이나요? ⓘ</div>
+                    <div class="help-inner-content">
+                        <div class="help-header">사진 정보 가이드</div>
+                        <div class="help-item"><div class="help-icon">💬</div><div class="help-text">메신저 전송 시 <b>원본 화질이 아니면</b> 정보가 삭제됩니다.</div></div>
+                        <div class="help-item"><div class="help-icon">📸</div><div class="help-text"><b>해당 설정을 끄고 촬영하면</b> 원본 사진에는 정보가 저장되지 않습니다.</div></div>
+                        <div class="help-item"><div class="help-icon">📁</div><div class="help-text"><b>사진 정보가 존재하는</b> 사진을 선택해 주세요.</div></div>
+                        <div class="close-btn" id="closeHelp">닫기</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="sidebar">
             <div class="form-wrapper">
                 <h3>Watermark Editor</h3>
@@ -188,7 +366,25 @@
         const mainColorInput = document.getElementById('mainColor');
         const mainColorLabel = document.getElementById('main-color-label');
         const toast = document.getElementById('toast');
-        
+        const helpButton = document.getElementById('helpButton');
+        const closeHelp = document.getElementById('closeHelp');
+
+        // 도움말 버튼 로직
+        helpButton.addEventListener('click', (e) => {
+            if (!helpButton.classList.contains('expanded')) {
+                helpButton.classList.add('expanded');
+            }
+        });
+        closeHelp.addEventListener('click', (e) => {
+            e.stopPropagation();
+            helpButton.classList.remove('expanded');
+        });
+        document.addEventListener('click', (e) => {
+            if (!helpButton.contains(e.target)) {
+                helpButton.classList.remove('expanded');
+            }
+        });
+
         let currentLayout = "default";
         let selectedBgColor = "#ffffff";
         let currentImg = null;
@@ -307,6 +503,14 @@
                         } else {
                             applyInfoConstraint('date', ""); applyInfoConstraint('time', "");
                         }
+
+                        // [수정] 캔버스가 나타날 때 도움말 버튼 활성화
+                        const helpBtnWrap = document.getElementById('helpContainer');
+                        if (helpBtnWrap) {
+                            helpBtnWrap.style.display = 'flex';
+                            setTimeout(() => { helpBtnWrap.style.opacity = '1'; }, 50);
+                        }
+
                         document.getElementById('empty-msg').style.display = 'none';
                         document.getElementById('canvas-container').style.display = 'block';
                         draw();
@@ -362,7 +566,8 @@
                 ctxRef.textAlign = "center";
                 ctxRef.fillStyle = otherTextColor; ctxRef.font = `900 ${baseWidth * 0.05}px "Pretendard"`;
                 ctxRef.fillText(mainText, targetCanvas.width / 2, centerY - (bottomSpace * 0.05));
-                ctxRef.font =highlightColor; ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`; ctxRef.fillStyle = softenedOtherColor; 
+                ctxRef.textAlign = "center";
+                ctxRef.fillStyle = softenedOtherColor; ctxRef.font = `bold ${baseWidth * 0.02}px "Pretendard"`;
                 ctxRef.fillText(isCustomMode ? dateTime : `${brand}  |  ${exif}`, targetCanvas.width / 2, centerY + (bottomSpace * 0.22));
             } else if (currentLayout === 'classicBar') {
                 ctxRef.textAlign = "left";
@@ -414,43 +619,30 @@
             try {
                 toast.innerText = "Instagram을 선택해 Stories를 누르세요";
                 toast.classList.add('show');
-
                 const storyCanvas = document.createElement('canvas');
                 const sCtx = storyCanvas.getContext('2d');
-
                 const qualityScale = 2; 
                 storyCanvas.width = 1080 * qualityScale;
                 storyCanvas.height = 1920 * qualityScale;
-                
                 sCtx.fillStyle = '#F2F2F7';
                 sCtx.fillRect(0, 0, storyCanvas.width, storyCanvas.height);
-
                 const targetWidth = (1080 * 0.85) * qualityScale;
                 const scale = targetWidth / canvas.width;
                 const sw = canvas.width * scale;
                 const sh = canvas.height * scale;
                 const sx = (storyCanvas.width - sw) / 2;
                 const sy = (storyCanvas.height - sh) / 2;
-
                 sCtx.shadowColor = 'rgba(0,0,0,0.15)';
                 sCtx.shadowBlur = 30 * qualityScale;
                 sCtx.shadowOffsetY = 15 * qualityScale;
-
                 sCtx.drawImage(canvas, sx, sy, sw, sh);
-
                 const blob = await new Promise(resolve => storyCanvas.toBlob(resolve, 'image/jpeg', 1.0));
                 const file = new File([blob], `Insta_Story_HD_${Date.now()}.jpg`, { type: 'image/jpeg' });
-
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({ files: [file], title: 'Instagram Story' });
                 }
-            } catch (err) { 
-                console.error("공유 에러:", err); 
-            } finally { 
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 1000); 
-            }
+            } catch (err) { console.error("공유 에러:", err); 
+            } finally { setTimeout(() => { toast.classList.remove('show'); }, 1000); }
         });
     </script>
 </body>
