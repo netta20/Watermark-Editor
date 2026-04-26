@@ -225,7 +225,9 @@
         .color-dot { height: 30px; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.1s; }
         .color-dot.active { border: 2.5px solid var(--primary); transform: scale(1.05); }
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; margin-bottom: 40px; }
-        .btn-download { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
+        .btn-save-row { display: flex; gap: 8px; }
+        .btn-download { background: var(--primary); color: white; border: none; padding: 14px 8px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 13px; flex: 1; line-height: 1.3; }
+        .btn-download-all { background: #3a3a3c; color: white; border: none; padding: 14px 8px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 13px; flex: 1; line-height: 1.3; }
         .btn-share { background: var(--insta); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; width: 100%; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -267,14 +269,329 @@
         }
 
         #toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); top: 40px; }
-    </style>
+
+        /* ── 추가: 이미지 목록 썸네일 스트립 ── */
+        #image-strip-wrap {
+            display: none;
+            margin-bottom: 20px;
+        }
+        #image-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        #image-strip::-webkit-scrollbar { height: 4px; }
+        #image-strip::-webkit-scrollbar-thumb { background: #c7c7cc; border-radius: 2px; }
+        .thumb-item {
+            position: relative;
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.15s;
+        }
+        .thumb-item.active { border-color: var(--primary); }
+        .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .thumb-add {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            border: 2px dashed #aeaeb2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #aeaeb2;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .thumb-add:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* 이미지 카운터 뱃지 */
+        #img-counter {
+            font-size: 10px;
+            font-weight: 700;
+            color: #a1a1a6;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* ── 추가: 전체 적용 버튼 (스트립 헤더 우측 인라인) ── */
+        .btn-apply-all {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 11px;
+            display: none;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+        .btn-apply-all:hover { background: var(--primary); color: #fff; }
+        .btn-apply-all:disabled { opacity: 0.3; cursor: not-allowed; }
+        /* ── 끝 ── */
+/* ===== 슬라이드 UI ===== */
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    display: none;
+    overflow: hidden;
+    position: relative;
+    box-shadow: none; /* 뒤에 이미 배경이 있으므로 바깥 사각형 그림자 제거 */
+    touch-action: pan-y;
+}
+
+#swipe-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    will-change: transform;
+    cursor: grab;
+    user-select: none;
+    touch-action: pan-y;
+    transform: translate3d(0, 0, 0);
+}
+
+#swipe-wrapper.dragging {
+    cursor: grabbing;
+}
+
+.swipe-item {
+    flex-shrink: 0;
+    max-width: min(70vw, 760px);
+    max-height: 85vh;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    transform: scale(0.84) translateZ(0);
+    transform-origin: center center;
+    opacity: 0.42;
+    transition:
+        transform 0.95s cubic-bezier(0.18, 1.18, 0.22, 1),
+        opacity 0.75s cubic-bezier(0.2, 0.9, 0.25, 1);
+    pointer-events: auto;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+.swipe-item.active {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+}
+
+#swipe-wrapper.dragging .swipe-item {
+    transition:
+        transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
+        opacity 0.18s ease;
+}
+
+#swipe-wrapper.dragging .swipe-item.active {
+    transform: scale(0.985) translateZ(0);
+}
+
+@media (max-width: 768px) {
+    #swipe-wrapper { gap: 24px; }
+    .swipe-item {
+        max-width: 78vw;
+        max-height: 45vh;
+    }
+}
+    
+/* === Clean UI + custom color popup === */
+:root{--panel-radius:22px;--control-radius:14px}.preview-area{background:radial-gradient(circle at 50% 35%,#e5e5ea 0,#d1d1d6 58%,#c7c7cc 100%)}.sidebar{width:430px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border-left:1px solid rgba(0,0,0,.08)}.form-wrapper{display:flex;flex-direction:column;gap:14px;max-width:370px}h3{margin-bottom:6px;padding-bottom:16px;border-bottom:1px solid rgba(0,0,0,.06)}.upload-area,.style-mode-container,.layout-grid,.setting-section,#image-strip-wrap,.btn-group{margin-bottom:0;background:rgba(255,255,255,.74);border:1px solid rgba(0,0,0,.06);border-radius:var(--panel-radius);box-shadow:0 8px 28px rgba(0,0,0,.035)}.upload-area{padding:22px}.style-mode-container,.setting-section,#image-strip-wrap,.btn-group{padding:16px}.layout-grid{padding:12px;min-height:0}.style-mode-btn,.layout-btn,input[type=text],.btn-download,.btn-download-all,.btn-share,.close-btn{border-radius:var(--control-radius)}.style-mode-btn,.layout-btn,input[type=text]{border:1px solid rgba(0,0,0,.07);background:rgba(245,245,247,.8)}.style-mode-btn.active,.layout-btn.active{box-shadow:0 8px 18px rgba(0,122,255,.18)}.btn-download,.btn-download-all,.btn-share{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}.btn-download:hover,.btn-download-all:hover,.btn-share:hover{transform:translateY(-1px);filter:brightness(1.03);box-shadow:0 10px 24px rgba(0,0,0,.1)}.color-dot{height:34px;border-radius:10px}.thumb-item,.thumb-add{width:62px;height:62px;border-radius:14px}input[type=color]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.nice-color-btn{width:100%;height:46px;border:1px solid rgba(0,0,0,.08);border-radius:var(--control-radius);background:rgba(245,245,247,.86);display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;font:inherit}.nice-color-swatch{width:26px;height:26px;border-radius:9px;border:1px solid rgba(0,0,0,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}.nice-color-value{font-size:13px;font-weight:800;color:#3a3a3c}#colorPickerModal{position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.24);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}#colorPickerModal.show{display:flex}.color-modal-card{width:min(360px,100%);background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.55);border-radius:26px;box-shadow:0 24px 80px rgba(0,0,0,.22);padding:18px;animation:colorPop .26s cubic-bezier(.2,1,.3,1)}@keyframes colorPop{from{transform:translateY(8px) scale(.98)}to{transform:translateY(0) scale(1)}}.color-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.color-modal-title{font-size:17px;font-weight:900;color:#1d1d1f}.color-modal-close{width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.06);font-size:18px;cursor:pointer}.color-preview-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:rgba(245,245,247,.9);margin-bottom:14px}#colorPreviewBig{width:42px;height:42px;border-radius:14px;border:1px solid rgba(0,0,0,.12)}#colorHexInput{flex:1;border:0;outline:0;background:transparent;font-size:15px;font-weight:900;text-transform:uppercase}.color-preset-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:14px}.color-preset-btn{aspect-ratio:1;border-radius:14px;border:1px solid rgba(0,0,0,.1);cursor:pointer}.color-preset-btn.active,.color-preset-btn:hover{transform:scale(1.08);box-shadow:0 0 0 3px rgba(0,122,255,.22)}.color-native-row{display:flex;gap:10px}#nativeColorPicker{position:static;opacity:1;pointer-events:auto;width:54px;height:46px;border:0;border-radius:14px;background:transparent}.color-apply-btn{flex:1;border:0;border-radius:14px;background:var(--primary);color:#fff;font-size:14px;font-weight:900;cursor:pointer}@media(max-width:768px){.preview-area{height:48vh;padding:14px}.sidebar{width:100%;background:#f7f7fa;padding:16px}.form-wrapper{max-width:none;gap:12px}.upload-area,.style-mode-container,.layout-grid,.setting-section,#image-strip-wrap,.btn-group{border-radius:20px;padding:14px;box-shadow:none}.layout-grid{gap:7px}.btn-save-row{flex-direction:column}.btn-download,.btn-download-all,.btn-share{width:100%;min-height:48px}}
+
+
+/* === Layout section label fix === */
+.layout-panel {
+    margin-bottom: 0;
+    background: rgba(255,255,255,.74);
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: var(--panel-radius);
+    box-shadow: 0 8px 28px rgba(0,0,0,.035);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.layout-panel > label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #a1a1a6;
+    text-transform: uppercase;
+    margin: 0;
+}
+.layout-panel .layout-grid {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 0;
+}
+@media (max-width: 768px) {
+    .layout-panel {
+        border-radius: 20px;
+        padding: 14px;
+        box-shadow: none;
+    }
+}
+
+
+/* === Auto color recommendation panel === */
+.auto-color-panel {
+    margin-bottom: 0;
+    background: rgba(255,255,255,.74);
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: var(--panel-radius);
+    box-shadow: 0 8px 28px rgba(0,0,0,.035);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.auto-color-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.auto-color-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: #a1a1a6;
+    text-transform: uppercase;
+    letter-spacing: .2px;
+}
+.auto-color-refresh {
+    border: 0;
+    background: rgba(0,122,255,.10);
+    color: var(--primary);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+}
+.auto-color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.auto-color-card {
+    border: 1px solid rgba(0,0,0,.07);
+    background: rgba(245,245,247,.78);
+    border-radius: 16px;
+    padding: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.auto-color-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0,122,255,.28);
+    box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+.auto-color-swatch {
+    width: 100%;
+    height: 34px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.12);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
+    margin-bottom: 8px;
+}
+.auto-color-name {
+    font-size: 11px;
+    font-weight: 900;
+    color: #3a3a3c;
+    margin-bottom: 2px;
+}
+.auto-color-code {
+    font-size: 10px;
+    font-weight: 800;
+    color: #8e8e93;
+}
+.auto-color-actions {
+    display: flex;
+    gap: 8px;
+}
+.auto-color-apply-all,
+.auto-color-apply-each {
+    flex: 1;
+    border: 0;
+    border-radius: 14px;
+    min-height: 40px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+}
+.auto-color-apply-all { background: var(--primary); color: white; }
+.auto-color-apply-each { background: #3a3a3c; color: white; }
+.auto-color-panel button:disabled,
+.auto-color-card:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+@media (max-width: 768px) {
+    .auto-color-panel {
+        border-radius: 20px;
+        padding: 14px;
+        box-shadow: none;
+    }
+    .auto-color-grid { gap: 7px; }
+    .auto-color-card { padding: 9px; border-radius: 15px; }
+    .auto-color-actions { flex-direction: column; }
+}
+
+
+.auto-color-card.pulse {
+    animation: autoColorPulse .32s cubic-bezier(.2,1,.3,1);
+}
+@keyframes autoColorPulse {
+    from { transform: scale(.97); }
+    to { transform: scale(1); }
+}
+
+</style>
 </head>
 <body>
     <div id="toast">Instagram을 선택해 Stories를 누르세요</div>
     <div class="main-container">
         <div class="preview-area">
             <div id="empty-msg"><p style="color:gray; font-weight:bold;">이미지를 업로드하세요.</p></div>
-            <div id="canvas-container"><canvas id="mainCanvas"></canvas></div>
+            <div id="canvas-container">
+    <div id="swipe-wrapper"></div>
+</div>
             
             <div id="helpContainer" class="help-container">
                 <div class="expandable-button" id="helpButton">
@@ -293,7 +610,24 @@
         <div class="sidebar">
             <div class="form-wrapper">
                 <h3>Watermark Editor</h3>
-                <label class="upload-area"><input type="file" id="upload" accept="image/*" style="display:none">이미지 업로드</label>
+                <label class="upload-area"><input type="file" id="upload" accept="image/*" multiple style="display:none">이미지 업로드</label>
+
+                <!-- ── 추가: 이미지 목록 스트립 ── -->
+                <div id="image-strip-wrap">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="section-label" style="margin-bottom:0;">이미지 목록</span>
+                            <span id="img-counter"></span>
+                        </div>
+                        <button id="apply-all" class="btn-apply-all" disabled>현재 설정 전체 적용</button>
+                    </div>
+                    <div id="image-strip">
+                        <!-- 썸네일이 동적으로 삽입됨 -->
+                        <div class="thumb-add" id="thumb-add-btn" title="이미지 추가">+</div>
+                    </div>
+                </div>
+                <!-- ── 끝 ── -->
+
                 <div class="style-mode-container">
                     <span class="section-label">워터마크 스타일</span>
                     <div class="mode-buttons">
@@ -301,15 +635,45 @@
                         <button class="style-mode-btn" id="mode-custom">문구 커스텀</button>
                     </div>
                 </div>
-                <div class="input-box full-row"><span class="section-label">레이아웃 스타일</span></div>
-                <div class="layout-grid" id="layoutButtonGroup">
-                    <button class="layout-btn active" data-value="default">기본</button>
-                    <button class="layout-btn" data-value="modelFocus" id="focus-btn-text">디바이스 강조</button>
-                    <button class="layout-btn" data-value="classicBar">클래식 바</button>
-                    <button class="layout-btn" data-value="filmData">필름 레트로</button>
-                    <button class="layout-btn" data-value="magazine">매거진</button>
-                    <button class="layout-btn" data-value="polaroid">폴라로이드</button>
-                    <button class="layout-btn" data-value="minimalBorder">심플 보더</button>
+                <div class="layout-panel input-box full-row">
+                    <label>레이아웃 스타일</label>
+                    <div class="layout-grid" id="layoutButtonGroup">
+                        <button class="layout-btn active" data-value="default">기본</button>
+                        <button class="layout-btn" data-value="modelFocus" id="focus-btn-text">디바이스 강조</button>
+                        <button class="layout-btn" data-value="classicBar">클래식 바</button>
+                        <button class="layout-btn" data-value="filmData">필름 레트로</button>
+                        <button class="layout-btn" data-value="magazine">매거진</button>
+                        <button class="layout-btn" data-value="polaroid">폴라로이드</button>
+                        <button class="layout-btn" data-value="minimalBorder">심플 보더</button>
+                    </div>
+                </div>
+
+                <div class="auto-color-panel" id="autoColorPanel">
+                    <div class="auto-color-head">
+                        <div class="auto-color-title">색상 자동 추천</div>
+                        <button type="button" class="auto-color-refresh" id="autoColorRefresh">다시 추천</button>
+                    </div>
+                    <div class="auto-color-grid">
+                        <button type="button" class="auto-color-card" id="applyAutoText" disabled>
+                            <div class="auto-color-swatch" id="autoTextSwatch"></div>
+                            <div class="auto-color-name">텍스트 색상</div>
+                            <div class="auto-color-code" id="autoTextCode">-</div>
+                        </button>
+                        <button type="button" class="auto-color-card" id="applyAutoBrand" disabled>
+                            <div class="auto-color-swatch" id="autoBrandSwatch"></div>
+                            <div class="auto-color-name">브랜드 색상</div>
+                            <div class="auto-color-code" id="autoBrandCode">-</div>
+                        </button>
+                        <button type="button" class="auto-color-card" id="applyAutoWatermark" disabled>
+                            <div class="auto-color-swatch" id="autoWatermarkSwatch"></div>
+                            <div class="auto-color-name">배경 색상</div>
+                            <div class="auto-color-code" id="autoWatermarkCode">-</div>
+                        </button>
+                    </div>
+                    <div class="auto-color-actions">
+                        <button type="button" class="auto-color-apply-all" id="applyAutoAll" disabled>추천 색상 3개 적용</button>
+                        <button type="button" class="auto-color-apply-each" id="applyAutoEach" disabled>전체 사진 각각 추천</button>
+                    </div>
                 </div>
                 <div class="setting-section">
                     <div class="input-box full-row">
@@ -352,7 +716,10 @@
                     <div class="input-box"><label>촬영 시각</label><input type="text" id="time"></div>
                 </div>
                 <div class="btn-group">
-                    <button id="download" class="btn-download" disabled>이미지 저장하기</button>
+                    <div class="btn-save-row">
+                        <button id="download" class="btn-download" disabled>현재 사진 저장</button>
+                        <button id="download-all" class="btn-download-all" disabled>전체 사진 저장 (<span id="all-count">0</span>장)</button>
+                    </div>
                     <button id="share" class="btn-share" disabled>스토리에 공유하기</button>
                 </div>
             </div>
@@ -361,9 +728,19 @@
 
     <script>
         const upload = document.getElementById('upload');
-        const canvas = document.getElementById('mainCanvas');
+        let canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+        const swipeWrapper = document.getElementById('swipe-wrapper');
+        let isSwipeRendering = false;
+        let swipeStartX = 0;
+        let swipeStartTranslate = 0;
+        let swipeCurrentTranslate = 0;
+        const SWIPE_SPRING = 'transform 0.92s cubic-bezier(0.18, 1.16, 0.22, 1)';
+        let isSwipeDragging = false;
+        let didSwipeDrag = false;
         const downloadBtn = document.getElementById('download');
+        const downloadAllBtn = document.getElementById('download-all');
+        const applyAllBtn = document.getElementById('apply-all');
         const shareBtn = document.getElementById('share');
         const layoutButtons = document.querySelectorAll('.layout-btn');
         const focusBtnText = document.getElementById('focus-btn-text');
@@ -372,6 +749,11 @@
         const toast = document.getElementById('toast');
         const helpButton = document.getElementById('helpButton');
         const closeHelp = document.getElementById('closeHelp');
+        const imageStripWrap = document.getElementById('image-strip-wrap');
+        const imageStrip = document.getElementById('image-strip');
+        const thumbAddBtn = document.getElementById('thumb-add-btn');
+        const imgCounter = document.getElementById('img-counter');
+        const allCountSpan = document.getElementById('all-count');
 
         // 도움말 버튼 로직
         helpButton.addEventListener('click', (e) => {
@@ -388,6 +770,62 @@
                 helpButton.classList.remove('expanded');
             }
         });
+
+        // ── 다중 이미지 상태 관리 ──
+        // 각 항목: { img, src, exif, settings }
+        // settings: { layout, bgColor, mainColor, textColor, customText, isCustomMode }
+        let imageList = [];
+        let currentIndex = -1;
+
+        // 현재 UI 상태를 settings 객체로 읽기
+        function readCurrentSettings() {
+            return {
+                layout: currentLayout,
+                bgColor: selectedBgColor,
+                mainColor: mainColorInput.value,
+                textColor: inputs.textColor.value,
+                customText: inputs.customText.value,
+                isCustomMode: isCustomMode,
+            };
+        }
+
+        // settings 객체를 UI에 반영 (draw는 호출하지 않음)
+        function applySettings(s) {
+            // 레이아웃
+            currentLayout = s.layout;
+            layoutButtons.forEach(b => {
+                b.classList.toggle('active', b.dataset.value === s.layout);
+            });
+            // 배경색
+            selectedBgColor = s.bgColor;
+            document.querySelectorAll('.color-dot').forEach(d => {
+                d.classList.toggle('active', d.dataset.color.toLowerCase() === s.bgColor.toLowerCase());
+            });
+            // 커스텀 모드
+            isCustomMode = s.isCustomMode;
+            if (isCustomMode) {
+                btnCustom.classList.add('active'); btnInfo.classList.remove('active');
+                secInfo.style.display = 'none'; secCustom.style.display = 'contents';
+                focusBtnText.innerText = "문구 강조";
+                mainColorLabel.innerText = "문구 색상";
+            } else {
+                btnInfo.classList.add('active'); btnCustom.classList.remove('active');
+                secInfo.style.display = 'contents'; secCustom.style.display = 'none';
+                focusBtnText.innerText = "디바이스 강조";
+                mainColorLabel.innerText = "브랜드 색상";
+            }
+            // 색상
+            mainColorInput.value = s.mainColor;
+            inputs.textColor.value = s.textColor;
+            inputs.customText.value = s.customText || "";
+        }
+
+        // 현재 이미지의 settings를 저장
+        function saveCurrentSettings() {
+            if (currentIndex < 0 || currentIndex >= imageList.length) return;
+            imageList[currentIndex].settings = readCurrentSettings();
+        }
+        // ── 끝 ──
 
         let currentLayout = "default";
         let selectedBgColor = "#ffffff";
@@ -410,6 +848,7 @@
             focusBtnText.innerText = "디바이스 강조";
             mainColorLabel.innerText = "브랜드 색상";
             mainColorInput.value = savedBrandColor;
+            saveCurrentSettings();
             if(currentImg) draw();
         });
 
@@ -422,6 +861,7 @@
             focusBtnText.innerText = "문구 강조";
             mainColorLabel.innerText = "문구 색상";
             mainColorInput.value = savedCustomColor;
+            saveCurrentSettings();
             if(currentImg) draw();
         });
 
@@ -429,7 +869,7 @@
         const inputs = {};
         fields.forEach(id => {
             inputs[id] = document.getElementById(id);
-            inputs[id].addEventListener('input', () => { if(currentImg) draw(); });
+            inputs[id].addEventListener('input', () => { saveCurrentSettings(); if(currentImg) draw(); });
         });
 
         layoutButtons.forEach(btn => {
@@ -437,6 +877,7 @@
                 layoutButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentLayout = btn.dataset.value;
+                saveCurrentSettings();
                 if(currentImg) draw();
             });
         });
@@ -446,6 +887,7 @@
                 document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
                 e.target.classList.add('active');
                 selectedBgColor = e.target.dataset.color;
+                saveCurrentSettings();
                 if(currentImg) draw();
             });
         });
@@ -478,52 +920,209 @@
             inputs[id].readOnly = !value; 
         }
 
-        upload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    currentImg = img;
-                    EXIF.getData(img, function() {
-                        const tags = EXIF.getAllTags(this);
-                        const brandRaw = tags.Make ? tags.Make.split(' ')[0] : "";
-                        applyModelConstraint('brandName', brandRaw);
-                        applyModelConstraint('modelName', tags.Model);
-                        const autoBrandColor = getBrandColor(brandRaw);
-                        savedBrandColor = autoBrandColor;
-                        if(!isCustomMode) mainColorInput.value = autoBrandColor;
-                        applyInfoConstraint('iso', tags.ISOSpeedRatings);
-                        applyInfoConstraint('focal', tags.FocalLengthIn35mmFilm ? tags.FocalLengthIn35mmFilm + "mm" : "");
-                        applyInfoConstraint('fNumber', tags.FNumber ? "F" + parseFloat(tags.FNumber).toFixed(1) : "");
-                        const shutterVal = tags.ExposureTime ? (tags.ExposureTime < 1 ? `1/${Math.round(1/tags.ExposureTime)}` : tags.ExposureTime) : "";
-                        applyInfoConstraint('shutter', shutterVal);
-                        const rawDate = tags.DateTimeOriginal || "";
-                        if (rawDate) {
-                            const parts = rawDate.split(' ');
-                            applyInfoConstraint('date', parts[0].replace(/:/g, '/'));
-                            applyInfoConstraint('time', parts[1].substring(0, 5));
-                        } else {
-                            applyInfoConstraint('date', ""); applyInfoConstraint('time', "");
-                        }
-
-                        // [수정] 캔버스가 나타날 때 도움말 버튼 활성화
-                        const helpBtnWrap = document.getElementById('helpContainer');
-                        if (helpBtnWrap) {
-                            helpBtnWrap.style.display = 'flex';
-                            setTimeout(() => { helpBtnWrap.style.opacity = '1'; }, 50);
-                        }
-
-                        document.getElementById('empty-msg').style.display = 'none';
-                        document.getElementById('canvas-container').style.display = 'block';
-                        draw();
+        // ── 추가: EXIF를 파싱해서 반환하는 함수 ──
+        function parseExif(img) {
+            return new Promise((resolve) => {
+                EXIF.getData(img, function() {
+                    const tags = EXIF.getAllTags(this);
+                    const brandRaw = tags.Make ? tags.Make.split(' ')[0] : "";
+                    const shutterVal = tags.ExposureTime
+                        ? (tags.ExposureTime < 1 ? `1/${Math.round(1/tags.ExposureTime)}` : tags.ExposureTime)
+                        : "";
+                    const rawDate = tags.DateTimeOriginal || "";
+                    let dateStr = "", timeStr = "";
+                    if (rawDate) {
+                        const parts = rawDate.split(' ');
+                        dateStr = parts[0].replace(/:/g, '/');
+                        timeStr = parts[1] ? parts[1].substring(0, 5) : "";
+                    }
+                    resolve({
+                        brandName: brandRaw,
+                        modelName: tags.Model || "",
+                        iso: tags.ISOSpeedRatings ? String(tags.ISOSpeedRatings) : "",
+                        focal: tags.FocalLengthIn35mmFilm ? tags.FocalLengthIn35mmFilm + "mm" : "",
+                        fNumber: tags.FNumber ? "F" + parseFloat(tags.FNumber).toFixed(1) : "",
+                        shutter: shutterVal,
+                        date: dateStr,
+                        time: timeStr,
+                        autoBrandColor: getBrandColor(brandRaw),
                     });
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+                });
+            });
+        }
+        // ── 끝 ──
+
+        // ── 추가: 썸네일 스트립 렌더링 ──
+        function renderStrip() {
+            // 기존 썸네일 제거 (+ 버튼 제외)
+            Array.from(imageStrip.querySelectorAll('.thumb-item')).forEach(el => el.remove());
+
+            imageList.forEach((item, i) => {
+                const div = document.createElement('div');
+                div.className = 'thumb-item' + (i === currentIndex ? ' active' : '');
+                const img = document.createElement('img');
+                img.src = item.src;
+                const rm = document.createElement('div');
+                rm.className = 'thumb-remove';
+                rm.textContent = '×';
+                rm.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeImage(i);
+                });
+                div.appendChild(img);
+                div.appendChild(rm);
+                div.addEventListener('click', () => selectImage(i));
+                imageStrip.insertBefore(div, thumbAddBtn);
+            });
+
+            imgCounter.textContent = `${imageList.length}장 선택됨`;
+            allCountSpan.textContent = imageList.length;
+        }
+        // ── 끝 ──
+
+        // ── 추가: 이미지 선택 ──
+        function selectImage(index, animateSwipe = false) {
+            // 현재 이미지 설정 저장
+            saveCurrentSettings();
+
+            currentIndex = index;
+            const item = imageList[index];
+            currentImg = item.img;
+            const exif = item.exif;
+
+            // EXIF 필드 복원
+            applyModelConstraint('brandName', exif.brandName);
+            applyModelConstraint('modelName', exif.modelName);
+            applyInfoConstraint('iso', exif.iso);
+            applyInfoConstraint('focal', exif.focal);
+            applyInfoConstraint('fNumber', exif.fNumber);
+            applyInfoConstraint('shutter', exif.shutter);
+            applyInfoConstraint('date', exif.date);
+            applyInfoConstraint('time', exif.time);
+
+            // ── 이 이미지의 저장된 settings 복원 ──
+            const s = item.settings;
+            applySettings(s);
+            savedBrandColor = s.isCustomMode ? exif.autoBrandColor : s.mainColor;
+            savedCustomColor = s.isCustomMode ? s.mainColor : "#000000";
+
+            // 전체 적용 버튼: 이미지 2장 이상일 때만 표시
+            applyAllBtn.style.display = imageList.length > 1 ? 'block' : 'none';
+            applyAllBtn.disabled = imageList.length < 2;
+
+            renderStrip();
+
+            // 이미 슬라이드가 그려져 있으면 다시 만들지 않고 위치/크기만 자연스럽게 전환
+            if (swipeWrapper && swipeWrapper.children.length === imageList.length) {
+                updateSwipePosition(animateSwipe);
+            } else {
+                draw();
+                renderSwipeView(animateSwipe);
+            }
+        }
+        // ── 끝 ──
+
+        // ── 추가: 이미지 제거 ──
+        function removeImage(index) {
+            imageList.splice(index, 1);
+            if (imageList.length === 0) {
+                currentIndex = -1;
+                currentImg = null;
+                document.getElementById('empty-msg').style.display = '';
+                document.getElementById('canvas-container').style.display = 'none';
+                imageStripWrap.style.display = 'none';
+                downloadBtn.disabled = true;
+                downloadAllBtn.disabled = true;
+                shareBtn.disabled = true;
+                applyAllBtn.style.display = 'none';
+                const helpBtnWrap = document.getElementById('helpContainer');
+                if (helpBtnWrap) { helpBtnWrap.style.display = 'none'; helpBtnWrap.style.opacity = '0'; }
+            } else {
+                const newIndex = Math.min(index, imageList.length - 1);
+                selectImage(newIndex);
+            }
+            renderStrip();
+        }
+        // ── 끝 ──
+
+        // ── 추가: 파일들을 처리해서 imageList에 추가하는 함수 ──
+        async function processFiles(files) {
+            for (const file of files) {
+                await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = async () => {
+                            const exif = await parseExif(img);
+                            // 이미지별 초기 settings: 현재 전역 설정을 그대로 복사
+                            const initialSettings = {
+                                // 새로 추가한 사진은 현재 편집 중인 스타일을 따라가지 않고
+                                // 처음 업로드했을 때의 기본 상태로 추가됩니다.
+                                layout: "default",
+                                bgColor: "#FFFFFF",
+                                mainColor: exif.autoBrandColor || "#00126b",
+                                textColor: "#000000",
+                                customText: "",
+                                isCustomMode: false,
+                            };
+                            imageList.push({ img, src: event.target.result, exif, settings: initialSettings });
+                            resolve();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            imageStripWrap.style.display = 'block';
+            document.getElementById('empty-msg').style.display = 'none';
+            document.getElementById('canvas-container').style.display = 'block';
+            downloadAllBtn.disabled = false;
+
+            const helpBtnWrap = document.getElementById('helpContainer');
+            if (helpBtnWrap) {
+                helpBtnWrap.style.display = 'flex';
+                setTimeout(() => { helpBtnWrap.style.opacity = '1'; }, 50);
+            }
+
+            // 새로 추가된 첫 번째 이미지로 이동 (또는 기존 인덱스 유지)
+            const newFirst = imageList.length - files.length;
+            selectImage(newFirst >= 0 ? newFirst : 0);
+        }
+        // ── 끝 ──
+
+        upload.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (!files.length) return;
+            // input 초기화 (같은 파일 재선택 허용)
+            upload.value = '';
+            await processFiles(files);
         });
+
+        // ── 추가: 전체 적용 ──
+        applyAllBtn.addEventListener('click', () => {
+            if (currentIndex < 0) return;
+            saveCurrentSettings();
+            const current = imageList[currentIndex].settings;
+            imageList.forEach((item, i) => {
+                if (i === currentIndex) return;
+                // EXIF(브랜드·모델·촬영정보)는 각 이미지 고유값 유지,
+                // 스타일 설정(layout, bgColor, mainColor, textColor, customText, isCustomMode)만 덮어씀
+                item.settings = { ...current };
+            });
+            // 양옆 미리보기까지 현재 설정이 바로 보이도록 전체 슬라이드 다시 렌더링
+            renderSwipeView(false);
+
+            // 토스트로 피드백
+            toast.innerText = `현재 설정이 전체 ${imageList.length}장에 적용되었습니다`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+        // ── 끝 ──
+
+        // ── 추가: + 버튼으로 이미지 추가 ──
+        thumbAddBtn.addEventListener('click', () => { upload.click(); });
+        // ── 끝 ──
 
         function draw(targetCanvas = canvas) {
             if(!currentImg) return;
@@ -619,6 +1218,48 @@
             link.href = canvas.toDataURL('image/jpeg', 0.95); link.click();
         });
 
+        // ── 추가: 전체 저장 ──
+        downloadAllBtn.addEventListener('click', async () => {
+            if (imageList.length === 0) return;
+
+            const originalIndex = currentIndex;
+
+            for (let i = 0; i < imageList.length; i++) {
+                // 각 이미지의 개별 settings를 적용해서 그리기
+                const item = imageList[i];
+                currentImg = item.img;
+                applySettings(item.settings);
+                applyModelConstraint('brandName', item.exif.brandName);
+                applyModelConstraint('modelName', item.exif.modelName);
+                applyInfoConstraint('iso', item.exif.iso);
+                applyInfoConstraint('focal', item.exif.focal);
+                applyInfoConstraint('fNumber', item.exif.fNumber);
+                applyInfoConstraint('shutter', item.exif.shutter);
+                applyInfoConstraint('date', item.exif.date);
+                applyInfoConstraint('time', item.exif.time);
+
+                const tempCanvas = document.createElement('canvas');
+                draw(tempCanvas);
+
+                await new Promise((resolve) => {
+                    tempCanvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `Photo_${i + 1}_${Date.now()}.jpg`;
+                        link.href = url;
+                        link.click();
+                        setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 200);
+                    }, 'image/jpeg', 0.95);
+                });
+
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            // 원래 선택된 이미지로 복귀
+            selectImage(originalIndex);
+        });
+        // ── 끝 ──
+
         shareBtn.addEventListener('click', async () => {
             try {
                 toast.innerText = "Instagram을 선택해 Stories를 누르세요";
@@ -648,6 +1289,678 @@
             } catch (err) { console.error("공유 에러:", err); 
             } finally { setTimeout(() => { toast.classList.remove('show'); }, 1000); }
         });
-    </script>
+function renderSwipeView(animated = false) {
+    const wrapper = swipeWrapper;
+    if (!wrapper || isSwipeRendering) return;
+    if (!imageList.length || currentIndex < 0) return;
+
+    isSwipeRendering = true;
+    wrapper.innerHTML = '';
+
+    const savedState = {
+        img: currentImg,
+        index: currentIndex,
+        layout: currentLayout,
+        bgColor: selectedBgColor,
+        mainColor: mainColorInput.value,
+        textColor: inputs.textColor.value,
+        customText: inputs.customText.value,
+        isCustomMode: isCustomMode
+    };
+
+    imageList.forEach((item, i) => {
+        const c = document.createElement('canvas');
+        c.className = 'swipe-item' + (i === currentIndex ? ' active' : '');
+
+        currentImg = item.img;
+        applySettings(item.settings);
+        applyModelConstraint('brandName', item.exif.brandName);
+        applyModelConstraint('modelName', item.exif.modelName);
+        applyInfoConstraint('iso', item.exif.iso);
+        applyInfoConstraint('focal', item.exif.focal);
+        applyInfoConstraint('fNumber', item.exif.fNumber);
+        applyInfoConstraint('shutter', item.exif.shutter);
+        applyInfoConstraint('date', item.exif.date);
+        applyInfoConstraint('time', item.exif.time);
+        draw(c);
+
+        c.addEventListener('click', () => {
+            if (didSwipeDrag) return;
+            selectImage(i, true);
+        });
+
+        wrapper.appendChild(c);
+    });
+
+    currentImg = savedState.img;
+    currentIndex = savedState.index;
+    currentLayout = savedState.layout;
+    selectedBgColor = savedState.bgColor;
+    isCustomMode = savedState.isCustomMode;
+    mainColorInput.value = savedState.mainColor;
+    inputs.textColor.value = savedState.textColor;
+    inputs.customText.value = savedState.customText;
+
+    applySettings(imageList[currentIndex].settings);
+    const exif = imageList[currentIndex].exif;
+    applyModelConstraint('brandName', exif.brandName);
+    applyModelConstraint('modelName', exif.modelName);
+    applyInfoConstraint('iso', exif.iso);
+    applyInfoConstraint('focal', exif.focal);
+    applyInfoConstraint('fNumber', exif.fNumber);
+    applyInfoConstraint('shutter', exif.shutter);
+    applyInfoConstraint('date', exif.date);
+    applyInfoConstraint('time', exif.time);
+
+    canvas = wrapper.children[currentIndex] || canvas;
+    updateSwipePosition(animated);
+    isSwipeRendering = false;
+}
+
+function getSwipeGap() {
+    return window.innerWidth <= 768 ? 24 : 40;
+}
+
+function getSwipeCenterTranslate(index) {
+    const wrapper = swipeWrapper;
+    const item = wrapper.children[index];
+    const container = document.getElementById('canvas-container');
+    if (!wrapper || !item || !container) return 0;
+
+    const gap = getSwipeGap();
+    let beforeWidth = 0;
+    for (let i = 0; i < index; i++) {
+        beforeWidth += wrapper.children[i].offsetWidth + gap;
+    }
+
+    const itemCenter = beforeWidth + (item.offsetWidth / 2);
+    const containerCenter = container.clientWidth / 2;
+    return containerCenter - itemCenter;
+}
+
+function updateSwipePosition(animated = true) {
+    if (!swipeWrapper || currentIndex < 0 || !swipeWrapper.children.length) return;
+    swipeCurrentTranslate = getSwipeCenterTranslate(currentIndex);
+    swipeStartTranslate = swipeCurrentTranslate;
+    swipeWrapper.style.transition = animated ? SWIPE_SPRING : 'none';
+    swipeWrapper.style.transform = `translate3d(${swipeCurrentTranslate}px, 0, 0)`;
+
+    Array.from(swipeWrapper.children).forEach((el, i) => {
+        el.classList.toggle('active', i === currentIndex);
+    });
+
+    canvas = swipeWrapper.children[currentIndex] || canvas;
+}
+
+function finishSwipe(diff) {
+    const threshold = Math.min(120, window.innerWidth * 0.18);
+
+    if (diff < -threshold && currentIndex < imageList.length - 1) {
+        selectImage(currentIndex + 1, true);
+    } else if (diff > threshold && currentIndex > 0) {
+        selectImage(currentIndex - 1, true);
+    } else {
+        updateSwipePosition(true);
+    }
+}
+
+swipeWrapper.addEventListener('pointerdown', (e) => {
+    if (imageList.length <= 1 || currentIndex < 0) return;
+    isSwipeDragging = true;
+    didSwipeDrag = false;
+    swipeStartX = e.clientX;
+    swipeStartTranslate = swipeCurrentTranslate;
+    swipeWrapper.classList.add('dragging');
+    swipeWrapper.style.transition = 'none';
+    swipeWrapper.setPointerCapture(e.pointerId);
+});
+
+swipeWrapper.addEventListener('pointermove', (e) => {
+    if (!isSwipeDragging) return;
+    const diff = e.clientX - swipeStartX;
+    if (Math.abs(diff) > 4) didSwipeDrag = true;
+
+    const absDiff = Math.abs(diff);
+    let resistanceDiff = diff;
+
+    if ((currentIndex === 0 && diff > 0) || (currentIndex === imageList.length - 1 && diff < 0)) {
+        resistanceDiff = Math.sign(diff) * Math.pow(absDiff, 0.82) * 1.55;
+    } else {
+        const softness = 1 - Math.min(absDiff / 1400, 0.12);
+        resistanceDiff = diff * softness;
+    }
+
+    swipeCurrentTranslate = swipeStartTranslate + resistanceDiff;
+    swipeWrapper.style.transform = `translate3d(${swipeCurrentTranslate}px, 0, 0)`;
+});
+
+swipeWrapper.addEventListener('pointerup', (e) => {
+    if (!isSwipeDragging) return;
+    isSwipeDragging = false;
+    swipeWrapper.classList.remove('dragging');
+    const diff = e.clientX - swipeStartX;
+    finishSwipe(diff);
+    setTimeout(() => { didSwipeDrag = false; }, 0);
+});
+
+swipeWrapper.addEventListener('pointercancel', () => {
+    if (!isSwipeDragging) return;
+    isSwipeDragging = false;
+    swipeWrapper.classList.remove('dragging');
+    updateSwipePosition(true);
+});
+
+window.addEventListener('resize', () => {
+    updateSwipePosition(false);
+});
+    
+
+</script>
+<div id="colorPickerModal" aria-hidden="true"><div class="color-modal-card" role="dialog" aria-modal="true"><div class="color-modal-header"><div id="colorModalTitle" class="color-modal-title">색상 선택</div><button type="button" class="color-modal-close" id="colorModalClose">×</button></div><div class="color-preview-row"><div id="colorPreviewBig"></div><input id="colorHexInput" type="text" maxlength="7" value="#000000" spellcheck="false"></div><div class="color-preset-grid" id="colorPresetGrid"></div><div class="color-native-row"><input id="nativeColorPicker" type="color" value="#000000"><button type="button" class="color-apply-btn" id="colorApplyBtn">적용</button></div></div></div>
+
+<script>
+(function initNiceColorPickers(){
+    const modal = document.getElementById('colorPickerModal');
+    const title = document.getElementById('colorModalTitle');
+    const closeBtn = document.getElementById('colorModalClose');
+    const preview = document.getElementById('colorPreviewBig');
+    const hexInput = document.getElementById('colorHexInput');
+    const nativePicker = document.getElementById('nativeColorPicker');
+    const applyBtn = document.getElementById('colorApplyBtn');
+    const presetGrid = document.getElementById('colorPresetGrid');
+    if (!modal || !presetGrid) return;
+
+    const presets = ['#000000','#1C1C1E','#3A3A3C','#8E8E93','#FFFFFF','#FF3B30','#FF9500','#FFCC00','#34C759','#64D2FF','#0A84FF','#5E5CE6','#BF5AF2','#FF2D55','#00126B','#074CA1','#E30613','#009944'];
+    let activeInput = null;
+    let currentColor = '#000000';
+
+    function normalizeHex(value) {
+        value = String(value || '').trim();
+        if (!value.startsWith('#')) value = '#' + value;
+        if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+            value = '#' + value.slice(1).split('').map(ch => ch + ch).join('');
+        }
+        return /^#[0-9a-fA-F]{6}$/.test(value) ? value.toUpperCase() : null;
+    }
+
+    function setModalColor(value) {
+        const fixed = normalizeHex(value);
+        if (!fixed) return;
+        currentColor = fixed;
+        preview.style.background = fixed;
+        hexInput.value = fixed;
+        nativePicker.value = fixed;
+        Array.from(presetGrid.children).forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.color.toUpperCase() === fixed);
+        });
+    }
+
+    function syncNiceButton(input) {
+        const box = input.closest('.input-box');
+        const btn = box ? box.querySelector('.nice-color-btn') : null;
+        if (!btn) return;
+        btn.querySelector('.nice-color-swatch').style.background = input.value;
+        btn.querySelector('.nice-color-value').textContent = input.value.toUpperCase();
+    }
+
+    function openPicker(input) {
+        activeInput = input;
+        title.textContent = input.id === 'textColor' ? '텍스트 색상' : (typeof isCustomMode !== 'undefined' && isCustomMode ? '문구 색상' : '브랜드 색상');
+        setModalColor(input.value);
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePicker() {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        activeInput = null;
+    }
+
+    function applyColor() {
+        if (!activeInput) return;
+        activeInput.value = currentColor;
+        activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+        syncNiceButton(activeInput);
+        if (typeof renderSwipeView === 'function' && typeof currentImg !== 'undefined' && currentImg) renderSwipeView(false);
+        closePicker();
+    }
+
+    presetGrid.innerHTML = '';
+    presets.forEach(color => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'color-preset-btn';
+        btn.dataset.color = color;
+        btn.style.background = color;
+        btn.addEventListener('click', () => setModalColor(color));
+        presetGrid.appendChild(btn);
+    });
+
+    ['mainColor', 'textColor'].forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        if (!input.parentElement.querySelector('.nice-color-btn')) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'nice-color-btn';
+            btn.innerHTML = '<span class="nice-color-swatch"></span><span class="nice-color-value"></span>';
+            btn.addEventListener('click', () => openPicker(input));
+            input.insertAdjacentElement('afterend', btn);
+        }
+        syncNiceButton(input);
+        input.addEventListener('input', () => syncNiceButton(input));
+    });
+
+    nativePicker.addEventListener('input', e => setModalColor(e.target.value));
+    hexInput.addEventListener('input', e => {
+        const fixed = normalizeHex(e.target.value);
+        if (fixed) setModalColor(fixed);
+    });
+    applyBtn.addEventListener('click', applyColor);
+    closeBtn.addEventListener('click', closePicker);
+    modal.addEventListener('click', e => { if (e.target === modal) closePicker(); });
+    document.addEventListener('keydown', e => {
+        if (!modal.classList.contains('show')) return;
+        if (e.key === 'Escape') closePicker();
+        if (e.key === 'Enter') applyColor();
+    });
+})();
+</script>
+
+<script>
+(function initAutoColorRecommendation(){
+    const ids = {
+        panel: document.getElementById('autoColorPanel'),
+        refresh: document.getElementById('autoColorRefresh'),
+        textBtn: document.getElementById('applyAutoText'),
+        brandBtn: document.getElementById('applyAutoBrand'),
+        watermarkBtn: document.getElementById('applyAutoWatermark'),
+        allBtn: document.getElementById('applyAutoAll'),
+        eachBtn: document.getElementById('applyAutoEach'),
+        textSwatch: document.getElementById('autoTextSwatch'),
+        brandSwatch: document.getElementById('autoBrandSwatch'),
+        watermarkSwatch: document.getElementById('autoWatermarkSwatch'),
+        textCode: document.getElementById('autoTextCode'),
+        brandCode: document.getElementById('autoBrandCode'),
+        watermarkCode: document.getElementById('autoWatermarkCode')
+    };
+    if (!ids.panel) return;
+
+    let currentRecommendedColors = null;
+    let autoColorVariant = 0;
+
+    function clamp(n, min = 0, max = 255) { return Math.max(min, Math.min(max, n)); }
+    function toHex(n) { return clamp(Math.round(n)).toString(16).padStart(2, '0').toUpperCase(); }
+    function rgbToHex(r, g, b) { return `#${toHex(r)}${toHex(g)}${toHex(b)}`; }
+    function hexToRgb(hex) {
+        const fixed = String(hex || '').replace('#', '').trim();
+        const safe = fixed.length === 3
+            ? fixed.split('').map(ch => ch + ch).join('')
+            : fixed.padEnd(6, '0').slice(0, 6);
+        return {
+            r: parseInt(safe.slice(0, 2), 16) || 0,
+            g: parseInt(safe.slice(2, 4), 16) || 0,
+            b: parseInt(safe.slice(4, 6), 16) || 0
+        };
+    }
+    function luminance(hex) {
+        const {r, g, b} = hexToRgb(hex);
+        return (0.299 * r + 0.587 * g + 0.114 * b);
+    }
+    function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h *= 60;
+        }
+        return { h, s, l };
+    }
+    function hslToRgb(h, s, l) {
+        h = ((h % 360) + 360) % 360;
+        s = clamp(s, 0, 1); l = clamp(l, 0, 1);
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = l - c / 2;
+        let r = 0, g = 0, b = 0;
+        if (h < 60) [r, g, b] = [c, x, 0];
+        else if (h < 120) [r, g, b] = [x, c, 0];
+        else if (h < 180) [r, g, b] = [0, c, x];
+        else if (h < 240) [r, g, b] = [0, x, c];
+        else if (h < 300) [r, g, b] = [x, 0, c];
+        else [r, g, b] = [c, 0, x];
+        return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
+    }
+    function hslToHex(h, s, l) {
+        const {r, g, b} = hslToRgb(h, s, l);
+        return rgbToHex(r, g, b);
+    }
+    function mix(hex1, hex2, amount) {
+        const a = hexToRgb(hex1), b = hexToRgb(hex2);
+        return rgbToHex(
+            a.r * (1 - amount) + b.r * amount,
+            a.g * (1 - amount) + b.g * amount,
+            a.b * (1 - amount) + b.b * amount
+        );
+    }
+    function updateNiceColorButton(input) {
+        if (!input) return;
+        const box = input.closest('.input-box');
+        const btn = box ? box.querySelector('.nice-color-btn') : null;
+        if (!btn) return;
+        const swatch = btn.querySelector('.nice-color-swatch');
+        const value = btn.querySelector('.nice-color-value');
+        if (swatch) swatch.style.background = input.value;
+        if (value) value.textContent = input.value.toUpperCase();
+    }
+    function syncPaletteUI(color) {
+        const fixed = String(color || '').toUpperCase();
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.classList.toggle('active', String(dot.dataset.color || '').toUpperCase() === fixed);
+        });
+    }
+    function getHueGroup(h) {
+        if (h >= 345 || h < 15) return 'red';
+        if (h < 45) return 'orange';
+        if (h < 70) return 'yellow';
+        if (h < 165) return 'green';
+        if (h < 195) return 'cyan';
+        if (h < 245) return 'blue';
+        if (h < 285) return 'purple';
+        if (h < 345) return 'pink';
+        return 'other';
+    }
+
+    const groupPalette = {
+        red:    { brand: '#D94141', watermark: '#FFE8E8' },
+        orange: { brand: '#D66C1F', watermark: '#FFF0DF' },
+        yellow: { brand: '#A97900', watermark: '#FFF6D8' },
+        green:  { brand: '#2F8F5B', watermark: '#E6F6ED' },
+        cyan:   { brand: '#188C98', watermark: '#E3F7F8' },
+        blue:   { brand: '#2867C9', watermark: '#E8F0FF' },
+        purple: { brand: '#7755C7', watermark: '#F0EAFE' },
+        pink:   { brand: '#D85A8A', watermark: '#FFE8F1' },
+        other:  { brand: '#3A3A3C', watermark: '#F2F2F7' }
+    };
+
+    function makeTextColor(brandHex, watermarkHex, variant = 0) {
+        const bgLum = luminance(watermarkHex);
+        const brand = hexToRgb(brandHex);
+        const darkBase = variant % 3 === 1 ? {r: 44, g: 44, b: 46} : {r: 28, g: 28, b: 30};
+        const lightBase = variant % 3 === 1 ? {r: 255, g: 251, b: 246} : {r: 245, g: 245, b: 247};
+        const base = bgLum > 150 ? darkBase : lightBase;
+        const amount = bgLum > 150 ? 0.18 + (variant % 3) * 0.04 : 0.12 + (variant % 3) * 0.03;
+        const result = rgbToHex(
+            base.r * (1 - amount) + brand.r * amount,
+            base.g * (1 - amount) + brand.g * amount,
+            base.b * (1 - amount) + brand.b * amount
+        );
+        return Math.abs(luminance(result) - bgLum) < 88 ? (bgLum > 150 ? '#1C1C1E' : '#FFFFFF') : result;
+    }
+
+    function getColorCandidates(img) {
+        const temp = document.createElement('canvas');
+        const ctx2 = temp.getContext('2d', { willReadFrequently: true });
+        const size = 150;
+        temp.width = size;
+        temp.height = size;
+        ctx2.drawImage(img, 0, 0, size, size);
+        const data = ctx2.getImageData(0, 0, size, size).data;
+
+        const buckets = new Map();
+        let lumSum = 0;
+        let lumCount = 0;
+
+        for (let y = 0; y < size; y += 2) {
+            for (let x = 0; x < size; x += 2) {
+                const i = (y * size + x) * 4;
+                const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+                if (a < 128) continue;
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                lumSum += lum; lumCount++;
+                const {h, s, l} = rgbToHsl(r, g, b);
+                if (l < 0.10 || l > 0.94 || s < 0.16) continue;
+
+                const group = getHueGroup(h);
+                const isBlueSky = (group === 'blue' || group === 'cyan') && y < size * 0.62 && l > 0.42 && s < 0.78;
+                const grayCloud = s < 0.23 && l > 0.62;
+                if (grayCloud) continue;
+
+                const cx = Math.abs(x - size / 2) / (size / 2);
+                const cy = Math.abs(y - size / 2) / (size / 2);
+                const center = 0.65 + (1 - Math.min(1, Math.sqrt(cx * cx + cy * cy))) * 1.1;
+                const vivid = Math.pow(s, 2.05);
+                const midLight = Math.max(0.15, 1 - Math.abs(l - 0.52) * 1.15);
+                const skyPenalty = isBlueSky ? 0.045 : 1;
+                const bluePenalty = (group === 'blue' || group === 'cyan') ? 0.42 : 1;
+                const subjectBonus = (group === 'pink' || group === 'red' || group === 'green' || group === 'orange') ? 2.45 : 1;
+                const lowerBonus = y > size * 0.34 ? 1.22 : 0.78;
+                const score = center * vivid * midLight * skyPenalty * bluePenalty * subjectBonus * lowerBonus;
+                if (score <= 0.001) continue;
+
+                const entry = buckets.get(group) || {score: 0, hSum: 0, sSum: 0, lSum: 0};
+                entry.score += score;
+                entry.hSum += h * score;
+                entry.sSum += s * score;
+                entry.lSum += l * score;
+                buckets.set(group, entry);
+            }
+        }
+
+        const avgLum = lumCount ? lumSum / lumCount : 180;
+        let candidates = Array.from(buckets.entries()).map(([group, v]) => {
+            const h = v.hSum / v.score;
+            const s = v.sSum / v.score;
+            const l = v.lSum / v.score;
+            const tunedBrand = hslToHex(h, Math.max(0.50, Math.min(0.84, s + 0.12)), Math.max(0.34, Math.min(0.53, l * 0.80)));
+            return {
+                group,
+                score: v.score,
+                brand: tunedBrand,
+                watermark: (groupPalette[group] || groupPalette.other).watermark
+            };
+        }).sort((a, b) => b.score - a.score);
+
+        const nature = candidates.filter(c => ['pink','red','green','orange','yellow','purple'].includes(c.group));
+        const blueScore = candidates.filter(c => c.group === 'blue' || c.group === 'cyan').reduce((sum, c) => sum + c.score, 0);
+        if (nature.length && blueScore && nature[0].score >= blueScore * 0.16) {
+            candidates = nature.concat(candidates.filter(c => !nature.some(n => n.group === c.group)));
+        }
+
+        if (!candidates.length) {
+            candidates.push({ group: 'other', score: 1, brand: avgLum > 145 ? '#2C2C2E' : '#F5F5F7', watermark: avgLum > 145 ? '#FFFFFF' : '#1C1C1E' });
+        }
+
+        // 후보가 한 개뿐이면 비슷하지만 다른 분위기의 안전 후보를 추가해서 '다시 추천'이 실제로 바뀌게 함.
+        const primary = candidates[0];
+        const preset = groupPalette[primary.group] || groupPalette.other;
+        candidates.push({ group: primary.group + '-preset', score: primary.score * 0.82, brand: preset.brand, watermark: preset.watermark });
+        candidates.push({ group: primary.group + '-soft', score: primary.score * 0.70, brand: mix(primary.brand, '#1C1C1E', 0.12), watermark: mix(preset.watermark, '#FFFFFF', 0.35) });
+
+        // 같은 색 중복 제거
+        const seen = new Set();
+        return candidates.filter(c => {
+            const key = c.brand + c.watermark;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    function getRecommendedColorsForImage(img, variant = autoColorVariant) {
+        const candidates = getColorCandidates(img);
+        const pick = candidates[Math.abs(variant) % candidates.length];
+        const brand = pick.brand;
+        const watermark = pick.watermark;
+        const text = makeTextColor(brand, watermark, variant);
+        return { text, brand, watermark };
+    }
+
+    function setPreview(colors) {
+        currentRecommendedColors = colors;
+        const items = [
+            ['text', ids.textSwatch, ids.textCode, ids.textBtn],
+            ['brand', ids.brandSwatch, ids.brandCode, ids.brandBtn],
+            ['watermark', ids.watermarkSwatch, ids.watermarkCode, ids.watermarkBtn]
+        ];
+        items.forEach(([key, swatch, code, btn]) => {
+            if (swatch) swatch.style.background = colors ? colors[key] : 'transparent';
+            if (code) code.textContent = colors ? colors[key].toUpperCase() : '-';
+            if (btn) {
+                btn.disabled = !colors;
+                if (colors) {
+                    btn.classList.remove('pulse');
+                    void btn.offsetWidth;
+                    btn.classList.add('pulse');
+                }
+            }
+        });
+        if (ids.allBtn) ids.allBtn.disabled = !colors;
+        if (ids.eachBtn) ids.eachBtn.disabled = !(imageList && imageList.length);
+    }
+
+    function redrawAfterColorChange(rebuild = true) {
+        saveCurrentSettings();
+        if (currentImg) draw();
+        if (rebuild && typeof renderSwipeView === 'function' && imageList.length) renderSwipeView(false);
+        setTimeout(() => window.updateAutoColorPanel && window.updateAutoColorPanel(false), 0);
+    }
+    function applyBrandColor(color, rebuild = true) {
+        mainColorInput.value = color;
+        mainColorInput.dispatchEvent(new Event('input', { bubbles: true }));
+        updateNiceColorButton(mainColorInput);
+        redrawAfterColorChange(rebuild);
+    }
+    function applyTextColor(color, rebuild = true) {
+        inputs.textColor.value = color;
+        inputs.textColor.dispatchEvent(new Event('input', { bubbles: true }));
+        updateNiceColorButton(inputs.textColor);
+        redrawAfterColorChange(rebuild);
+    }
+    function applyWatermarkColor(color, rebuild = true) {
+        selectedBgColor = color;
+        syncPaletteUI(color);
+        redrawAfterColorChange(rebuild);
+    }
+    function applyAllRecommended(colors = currentRecommendedColors, rebuild = true) {
+        if (!colors) return;
+        mainColorInput.value = colors.brand;
+        inputs.textColor.value = colors.text;
+        selectedBgColor = colors.watermark;
+        mainColorInput.dispatchEvent(new Event('input', { bubbles: true }));
+        inputs.textColor.dispatchEvent(new Event('input', { bubbles: true }));
+        updateNiceColorButton(mainColorInput);
+        updateNiceColorButton(inputs.textColor);
+        syncPaletteUI(colors.watermark);
+        redrawAfterColorChange(rebuild);
+    }
+
+    window.updateAutoColorPanel = function updateAutoColorPanel(advance = false) {
+        if (!currentImg || currentIndex < 0 || !imageList[currentIndex]) {
+            setPreview(null);
+            return;
+        }
+
+        const item = imageList[currentIndex];
+
+        if (typeof item.autoColorVariant !== 'number') {
+            item.autoColorVariant = 0;
+        }
+
+        if (advance) {
+            item.autoColorVariant += 1;
+        }
+
+        autoColorVariant = item.autoColorVariant;
+
+        const colors = getRecommendedColorsForImage(currentImg, item.autoColorVariant);
+
+        // 사진별로 마지막 추천값을 저장해둠.
+        // 나중에 '전체 사진 각각 추천'을 눌렀을 때 이 사진은 이 색상을 그대로 적용함.
+        item.autoRecommendedColors = colors;
+
+        setPreview(colors);
+    };
+
+    ids.refresh && ids.refresh.addEventListener('click', () => window.updateAutoColorPanel(true));
+    ids.textBtn && ids.textBtn.addEventListener('click', () => currentRecommendedColors && applyTextColor(currentRecommendedColors.text));
+    ids.brandBtn && ids.brandBtn.addEventListener('click', () => currentRecommendedColors && applyBrandColor(currentRecommendedColors.brand));
+    ids.watermarkBtn && ids.watermarkBtn.addEventListener('click', () => currentRecommendedColors && applyWatermarkColor(currentRecommendedColors.watermark));
+    ids.allBtn && ids.allBtn.addEventListener('click', () => applyAllRecommended());
+    ids.eachBtn && ids.eachBtn.addEventListener('click', () => {
+        if (!imageList.length) return;
+
+        // 현재 화면의 설정을 먼저 저장해서, 적용 전에 수정한 값이 꼬이지 않게 함
+        saveCurrentSettings();
+
+        const keepIndex = currentIndex;
+
+        imageList.forEach((item) => {
+            // 사용자가 해당 사진에서 '다시 추천'을 눌러둔 적이 있으면 그 추천값을 우선 적용.
+            // 없다면 각 사진의 기본 1순위 추천값을 적용.
+            const colors = item.autoRecommendedColors || getRecommendedColorsForImage(item.img, 0);
+
+            item.settings = {
+                ...item.settings,
+                mainColor: colors.brand,
+                textColor: colors.text,
+                bgColor: colors.watermark
+            };
+        });
+
+        currentIndex = keepIndex;
+        currentImg = imageList[keepIndex].img;
+
+        const exif = imageList[keepIndex].exif;
+        applyModelConstraint('brandName', exif.brandName);
+        applyModelConstraint('modelName', exif.modelName);
+        applyInfoConstraint('iso', exif.iso);
+        applyInfoConstraint('focal', exif.focal);
+        applyInfoConstraint('fNumber', exif.fNumber);
+        applyInfoConstraint('shutter', exif.shutter);
+        applyInfoConstraint('date', exif.date);
+        applyInfoConstraint('time', exif.time);
+
+        applySettings(imageList[keepIndex].settings);
+        updateNiceColorButton(mainColorInput);
+        updateNiceColorButton(inputs.textColor);
+        syncPaletteUI(imageList[keepIndex].settings.bgColor);
+
+        renderStrip();
+        draw();
+        renderSwipeView(false);
+
+        // 현재 보고 있는 사진의 추천 미리보기도 마지막 추천값 기준으로 유지
+        setPreview(imageList[keepIndex].autoRecommendedColors || getRecommendedColorsForImage(currentImg, 0));
+
+        toast.innerText = `전체 ${imageList.length}장에 각각 추천 색상을 적용했습니다`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+
+    const originalSelectImage = selectImage;
+    selectImage = function(index, animateSwipe = false) {
+        autoColorVariant = imageList[index]?.autoColorVariant || 0;
+        originalSelectImage(index, animateSwipe);
+        setTimeout(() => window.updateAutoColorPanel(false), 0);
+    };
+
+    ['mainColor', 'textColor'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.addEventListener('input', () => setTimeout(() => updateNiceColorButton(input), 0));
+    });
+
+    window.updateAutoColorPanel(false);
+})();
+</script>
+
 </body>
 </html>
