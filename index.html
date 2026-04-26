@@ -339,20 +339,25 @@
 
         /* ── 추가: 전체 적용 버튼 (스트립 헤더 우측 인라인) ── */
         .btn-apply-all {
-            background: transparent;
+            background: rgba(0,122,255,.10);
             color: var(--primary);
-            border: 1.5px solid var(--primary);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 700;
+            border: 0;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 900;
             cursor: pointer;
             font-size: 11px;
             display: none;
-            transition: background 0.15s, color 0.15s;
+            transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
             white-space: nowrap;
-            line-height: 1.4;
+            line-height: 1;
+            min-height: 30px;
         }
-        .btn-apply-all:hover { background: var(--primary); color: #fff; }
+        .btn-apply-all:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 8px 18px rgba(0,122,255,.14);
+        }
         .btn-apply-all:disabled { opacity: 0.3; cursor: not-allowed; }
         /* ── 끝 ── */
 /* ===== 슬라이드 UI ===== */
@@ -385,6 +390,7 @@
 }
 
 .swipe-item {
+
     flex-shrink: 0;
     max-width: min(70vw, 760px);
     max-height: 85vh;
@@ -403,23 +409,27 @@
 }
 
 .swipe-item.active {
+
     transform: scale(1) translateZ(0);
     opacity: 1;
 }
 
 #swipe-wrapper.dragging .swipe-item {
+
     transition:
         transform 0.18s cubic-bezier(0.2, 0.9, 0.25, 1),
         opacity 0.18s ease;
 }
 
 #swipe-wrapper.dragging .swipe-item.active {
+
     transform: scale(0.985) translateZ(0);
 }
 
 @media (max-width: 768px) {
     #swipe-wrapper { gap: 24px; }
     .swipe-item {
+
         max-width: 78vw;
         max-height: 45vh;
     }
@@ -492,14 +502,26 @@
     letter-spacing: .2px;
 }
 .auto-color-refresh {
-    border: 0;
     background: rgba(0,122,255,.10);
     color: var(--primary);
-    border-radius: 999px;
+    border: 0;
     padding: 6px 10px;
-    font-size: 11px;
+    border-radius: 999px;
     font-weight: 900;
     cursor: pointer;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    white-space: nowrap;
+    line-height: 1;
+    min-height: 30px;
+}
+.auto-color-refresh:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 8px 18px rgba(0,122,255,.14);
 }
 .auto-color-grid {
     display: grid;
@@ -580,6 +602,254 @@
 @keyframes autoColorPulse {
     from { transform: scale(.97); }
     to { transform: scale(1); }
+}
+
+
+/* === Final UI polish: button consistency + image count alignment === */
+#image-strip-wrap .section-label {
+    margin: 0 !important;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+#img-counter {
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    line-height: 1;
+    font-size: 11px;
+    font-weight: 800;
+    color: #8e8e93;
+    transform: translateY(0);
+}
+
+#image-strip-wrap > div:first-child > div {
+    align-items: center !important;
+}
+
+
+
+/* === Carousel clipped-edge natural fade === */
+.preview-area {
+    position: relative;
+}
+
+/* 내용 자체가 양끝에서 자연스럽게 사라지도록 마스크 처리 */
+#canvas-container {
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 3%,
+        black 97%,
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 3%,
+        black 97%,
+        transparent 100%
+    );
+}
+
+/* 양 끝 경계만 아주 살짝 부드럽게 보이도록 얇은 오버레이 */
+.preview-area::before,
+.preview-area::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: clamp(12px, 2vw, 28px);
+    height: 100%;
+    z-index: 30;
+    pointer-events: none;
+}
+
+.preview-area::before {
+    left: 0;
+    background: linear-gradient(
+        to right,
+        rgba(209, 209, 214, 0.28),
+        rgba(209, 209, 214, 0)
+    );
+}
+
+.preview-area::after {
+    right: 0;
+    background: linear-gradient(
+        to left,
+        rgba(209, 209, 214, 0.28),
+        rgba(209, 209, 214, 0)
+    );
+}
+
+@media (max-width: 768px) {
+    #canvas-container {
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            black 4%,
+            black 96%,
+            transparent 100%
+        );
+        mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            black 4%,
+            black 96%,
+            transparent 100%
+        );
+    }
+
+    .preview-area::before,
+    .preview-area::after {
+        width: clamp(10px, 4vw, 24px);
+    }
+}
+
+
+/* === Final help button position fix === */
+@media (min-width: 769px) {
+    .preview-area {
+        position: relative;
+    }
+
+    .help-container {
+        left: 50% !important;
+        right: auto !important;
+        bottom: 24px !important;
+        transform: translateX(-50%);
+        align-items: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .help-container {
+        left: 50% !important;
+        right: auto !important;
+        bottom: 12px !important;
+        transform: translateX(-50%);
+        align-items: center;
+        width: auto;
+        min-width: 42px;
+    }
+
+    .expandable-button {
+        margin-left: 0 !important;
+    }
+
+    .expandable-button.expanded {
+        width: min(92vw, 420px) !important;
+    }
+}
+
+
+/* === Fix help button to bottom-right === */
+@media (min-width: 769px) {
+    .help-container {
+        right: 24px !important;
+        left: auto !important;
+        bottom: 24px !important;
+        transform: none !important;
+        align-items: flex-end !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .help-container {
+        right: 14px !important;
+        left: auto !important;
+        bottom: 14px !important;
+        transform: none !important;
+        align-items: flex-end !important;
+    }
+}
+
+
+/* === Restore mobile help expanded full-width === */
+@media (max-width: 768px) {
+    .help-container {
+        left: 15px !important;
+        right: 15px !important;
+        bottom: 14px !important;
+        transform: none !important;
+        align-items: flex-end !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    .expandable-button {
+        margin-left: auto !important;
+    }
+
+    .expandable-button.expanded {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+
+
+/* === Unified button style: match layout buttons === */
+.style-mode-btn {
+    background: rgba(245,245,247,.8) !important;
+    color: #3a3a3c !important;
+    border: 1px solid rgba(0,0,0,.07) !important;
+    box-shadow: none !important;
+}
+
+.style-mode-btn.active {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 8px 18px rgba(0,122,255,.18) !important;
+}
+
+.style-mode-btn:hover:not(.active) {
+    background: #ffffff !important;
+}
+
+/* 추천 영역의 어두운 버튼도 전체 UI 톤에 맞게 정리 */
+.auto-color-apply-each {
+    background: rgba(245,245,247,.8) !important;
+    color: #3a3a3c !important;
+    border: 1px solid rgba(0,0,0,.07) !important;
+    box-shadow: none !important;
+}
+
+.auto-color-apply-each:hover {
+    background: #ffffff !important;
+}
+
+
+/* === Save buttons layout + secondary button style polish === */
+.btn-download-all {
+    background: rgba(245,245,247,.8) !important;
+    color: #3a3a3c !important;
+    border: 1px solid rgba(0,0,0,.07) !important;
+    box-shadow: none !important;
+}
+
+.btn-download-all:hover {
+    background: #ffffff !important;
+}
+
+/* 모바일에서도 저장 버튼 2개는 PC처럼 한 줄 유지 */
+@media (max-width: 768px) {
+    .btn-save-row {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .btn-download,
+    .btn-download-all {
+        width: auto !important;
+        flex: 1 !important;
+        min-height: 48px;
+        font-size: 12px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
 }
 
 </style>
@@ -671,8 +941,8 @@
                         </button>
                     </div>
                     <div class="auto-color-actions">
-                        <button type="button" class="auto-color-apply-all" id="applyAutoAll" disabled>추천 색상 3개 적용</button>
-                        <button type="button" class="auto-color-apply-each" id="applyAutoEach" disabled>전체 사진 각각 추천</button>
+                        <button type="button" class="auto-color-apply-all" id="applyAutoAll" disabled>추천 색상 적용</button>
+                        <button type="button" class="auto-color-apply-each" id="applyAutoEach" disabled>전체 사진에 추천 색상 적용</button>
                     </div>
                 </div>
                 <div class="setting-section">
